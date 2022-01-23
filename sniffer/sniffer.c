@@ -4,6 +4,7 @@
 #include <unistd.h> // getopt
 #include <signal.h> // Ctrl+C handling
 #include <arpa/inet.h> // struct in_addr
+#include <time.h> // ctime
 #include <pcap.h> // libpcap
 
 
@@ -19,13 +20,23 @@ void bypass_sigint(int sig_no) {
     exit(0); // we're done
 }
 
+// callback given to pcap_loop() fro processing captural datagrams
+void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *packet) {
+    printf("Grabbed %d bytes (%d\%) of datagram received on %s", 
+        h->caplen, 
+        (int)(100.0 * h->caplen / h->len), 
+        ctime((const time_t*)&h->ts.tv_sec)
+    );
+}
+
+
 int main(int argc, char *argv[]) {
     char *device = NULL;  // device to sniff
     char argch;           // to manage command line arguments
     char errbuf[PCAP_ERRBUF_SIZE];        // to handle libpcap error message
     int  siz = 1518,    // max number of bytes captured for each datagram
-         promisc = 0;   // deactive promiscuous mode?? promiscuous mode??
-
+         promisc = 0,    // deactive promiscuous mode?? promiscuous mode??
+         cnt = -1;       // capture indefinitely
 
     // install ctrl+c handle
     struct sigaction sa, osa;
@@ -33,7 +44,7 @@ int main(int argc, char *argv[]) {
     sa.sa_handler  = &bypass_sigint;
     sigaction(SIGINT, &sa, &osa);
 
-    while((argch = getopt(argc, argv, "hpd:")) != EOF) {
+    while((argch = getopt(argc, argv, "hpd:n:")) != EOF) {
         switch(argch) {
             case 'd': // device name
                 device = optarg;
@@ -43,9 +54,13 @@ int main(int argc, char *argv[]) {
                 printf("Usage: sniff [-d XXX -h]\n");
                 printf("-d XXX: device to capture from, where XXX is device name (ex: eth0).\n");
                 printf("-h : show this information.\n");
+                printf("-n : number of datagrams to capture.\n");
                 printf("-p : active promiscuous capture mode.\n");
 
                 if (argc == 2) return 0;
+                break;
+            case 'n': // number of datagrams to capture
+                cnt = atoi(optarg);
                 break;
             case 'p':
                 promisc = 1;
@@ -96,7 +111,8 @@ int main(int argc, char *argv[]) {
         return -4;
     }
 
-    // capture code will be inserted below
+    // Start capturing
+    pcap_loop(pcap_session, cnt, process_packet, NULL);
 
     // close the session
     pcap_close(pcap_session);
