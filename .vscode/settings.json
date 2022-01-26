@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "pcap.h": "c",
-        "stdlib.h": "c",
-        "signal.h": "c",
-        "time.h": "c"
-    }
-}
