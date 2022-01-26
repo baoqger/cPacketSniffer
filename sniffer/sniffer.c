@@ -6,10 +6,12 @@
 #include <arpa/inet.h> // struct in_addr
 #include <time.h> // ctime
 #include <pcap.h> // libpcap
-
-
+#include <stdbool.h> // bool
+#include "datagram.h"
 
 pcap_t *pcap_session = NULL; // libpcap session handle
+
+bool show_raw = false; // deactivate raw display of data captured
 
 // ctrl+c interrupt hanlder
 void bypass_sigint(int sig_no) {
@@ -22,11 +24,15 @@ void bypass_sigint(int sig_no) {
 
 // callback given to pcap_loop() fro processing captural datagrams
 void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *packet) {
-    printf("Grabbed %d bytes (%d\%) of datagram received on %s", 
+    printf("Grabbed %d bytes (%d%%) of datagram received on %s", 
         h->caplen, 
         (int)(100.0 * h->caplen / h->len), 
         ctime((const time_t*)&h->ts.tv_sec)
     );
+    struct datagram d = { .p_data = packet, .p_len = h->caplen};
+    if (show_raw) {
+        print_datagram(&d);
+    }
 }
 
 
@@ -44,7 +50,7 @@ int main(int argc, char *argv[]) {
     sa.sa_handler  = &bypass_sigint;
     sigaction(SIGINT, &sa, &osa);
 
-    while((argch = getopt(argc, argv, "hpd:n:")) != EOF) {
+    while((argch = getopt(argc, argv, "hprd:n:")) != EOF) {
         switch(argch) {
             case 'd': // device name
                 device = optarg;
@@ -56,7 +62,7 @@ int main(int argc, char *argv[]) {
                 printf("-h : show this information.\n");
                 printf("-n : number of datagrams to capture.\n");
                 printf("-p : active promiscuous capture mode.\n");
-
+                printf("-r : active raw display of captured data.\n");
                 if (argc == 2) return 0;
                 break;
             case 'n': // number of datagrams to capture
@@ -65,6 +71,10 @@ int main(int argc, char *argv[]) {
             case 'p':
                 promisc = 1;
                 break;
+            case 'r': // active raw display of captured data
+                show_raw = 1;
+                break;
+
         }
     }
 

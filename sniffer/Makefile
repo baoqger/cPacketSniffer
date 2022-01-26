@@ -1,6 +1,6 @@
 SNIFFER = sniffer
 
-SRC = sniffer.c 
+SRC = sniffer.c datagram.c
 OBJ = $(SRC:.c=.o)
 
 CC = cc

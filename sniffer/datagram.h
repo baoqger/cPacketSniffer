@@ -7,6 +7,6 @@ struct datagram {
     unsigned int p_len;
 };
 
+void print_datagram(const struct datagram *d);
 
-void print_datagram(struct datagram *d);
 #endif
