@@ -29,9 +29,10 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
         (int)(100.0 * h->caplen / h->len), 
         ctime((const time_t*)&h->ts.tv_sec)
     );
-    struct datagram d = { .p_data = packet, .p_len = h->caplen};
+    // struct datagram d = { .p_data = packet, .p_len = h->caplen};
+    datagram *d = new_datagram(packet, h->caplen);
     if (show_raw) {
-        print_datagram(&d);
+        d->print_datagram(d);
     }
 }
 

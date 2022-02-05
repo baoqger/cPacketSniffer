@@ -1,12 +1,14 @@
 #ifndef _DATAGRAM_H
 #define _DATAGRAM_H
 
-// the benifit of declaring a new type using typedef?
-struct datagram {
+typedef struct datagram_ datagram;
+
+struct datagram_ {
     unsigned char *p_data;
     unsigned int p_len;
+    void (*print_datagram)(datagram *self);
 };
 
-void print_datagram(const struct datagram *d);
+datagram* new_datagram(unsigned char *p_data, unsigned int p_len);
 
 #endif

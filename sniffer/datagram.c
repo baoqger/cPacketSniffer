@@ -1,8 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "datagram.h"
 
 
-void print_datagram(const struct datagram *d) {
+void print_datagram(datagram *d) {
     int LEN = 16; // number of bytes to display er line
     char outstr[8],     // for output formatting purposes
          ascii[LEN];    // holds textual bytes for a line
@@ -37,4 +38,12 @@ void print_datagram(const struct datagram *d) {
         printf("%c", ascii[j]);
     }
     printf("\n");
+}
+
+datagram* new_datagram(unsigned char *p_data, unsigned int p_len) {
+    datagram *d = malloc(sizeof(datagram));
+    d->p_data = p_data;
+    d->p_len = p_len;
+    d->print_datagram = print_datagram;
+    return d;
 }
