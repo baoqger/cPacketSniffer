@@ -40,10 +40,23 @@ void print_datagram(datagram *d) {
     printf("\n");
 }
 
+void free_datagram(datagram *d) {
+    free(d);
+}
+
+
+ethernetframe* create_ethernetframe(datagram *d) {
+    return new_ethernetframe(false, d->p_data, d->p_len);
+}
+
+
 datagram* new_datagram(unsigned char *p_data, unsigned int p_len) {
     datagram *d = malloc(sizeof(datagram));
     d->p_data = p_data;
     d->p_len = p_len;
     d->print_datagram = print_datagram;
+    d->free_datagram = free_datagram;
+    d->create_ethernetframe = create_ethernetframe;
     return d;
 }
+

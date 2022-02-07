@@ -1,6 +1,6 @@
 SNIFFER = sniffer
 
-SRC = sniffer.c datagram.c
+SRC = sniffer.c datagram.c ethernetframe.c macaddress.c
 OBJ = $(SRC:.c=.o)
 
 CC = cc

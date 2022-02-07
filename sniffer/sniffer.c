@@ -8,6 +8,7 @@
 #include <pcap.h> // libpcap
 #include <stdbool.h> // bool
 #include "datagram.h"
+#include "ethernetframe.h"
 
 pcap_t *pcap_session = NULL; // libpcap session handle
 
@@ -29,11 +30,15 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
         (int)(100.0 * h->caplen / h->len), 
         ctime((const time_t*)&h->ts.tv_sec)
     );
-    // struct datagram d = { .p_data = packet, .p_len = h->caplen};
+    // create datagram instance
     datagram *d = new_datagram(packet, h->caplen);
     if (show_raw) {
         d->print_datagram(d);
+        d->free_datagram(d);
     }
+    // create ethernetframe instance
+    ethernetframe *e = d->create_ethernetframe(d);
+    e->print_ethernetframe(e);
 }
 
 
