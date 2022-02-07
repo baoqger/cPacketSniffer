@@ -10,15 +10,25 @@ unsigned int length(macaddress *m) {
 }
 
 // Output operator displaying the MAC address in dot form (XX.XX.XX.XX.XX.XX)
-unsigned char* print_macaddress(macaddress *m) {
-    unsigned char macaddress[18];
+// unsigned char* print_macaddress(macaddress *m) {
+//     unsigned char macaddress[18];
+//     for (unsigned int i = 0; i < m->length(m); i++) {
+//         sprintf(macaddress + strlen(macaddress), "%.2x", m->p_data[i]);
+//         if (i < m->length(m) - 1) {
+//             sprintf(macaddress + strlen(macaddress), ".");
+//         }
+//     }
+//     return macaddress; 
+// }
+
+void print_macaddress(macaddress *m) {
     for (unsigned int i = 0; i < m->length(m); i++) {
-        sprintf(macaddress + strlen(macaddress), "%.2x", m->p_data[i]);
+        printf("%.2x", m->p_data[i]);
         if (i < m->length(m) - 1) {
-            sprintf(macaddress + strlen(macaddress), ".");
+            printf(".");
         }
     }
-    return macaddress; 
+    printf("\n");
 }
 
 

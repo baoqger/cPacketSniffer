@@ -15,8 +15,10 @@ void print_ethernetframe(ethernetframe* e) {
     if (e->p_data) {
         macaddress *d = e->destination_mac(e),
                    *s = e->source_mac(e);
-        printf("destination MAC address = %s\n", d->print_macaddress(d));
-        printf("source MAC address = %s\n", s->print_macaddress(s));
+        printf("destination MAC address: ");
+        d->print_macaddress(d);
+        printf("source MAC address: ");
+        s->print_macaddress(s);
     }
 }
 

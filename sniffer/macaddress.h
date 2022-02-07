@@ -12,7 +12,7 @@ struct macaddress_ {
     bool owned;
     unsigned char *p_data;
     unsigned int p_len;
-    unsigned char* (*print_macaddress)(macaddress *self);
+    void (*print_macaddress)(macaddress *self);
     unsigned int (*length)(macaddress *self);
 };
 
