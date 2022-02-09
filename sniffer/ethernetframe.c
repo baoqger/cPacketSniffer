@@ -1,21 +1,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 #include "ethernetframe.h"
 #include "utils.h"
 
-macaddress* destination_mac(ethernetframe* e) {
+macaddress* destination_mac(ethernetframe *e) {
     return new_macaddress(false, e->p_data);
 }
 
-macaddress* source_mac(ethernetframe* e) {
+macaddress* source_mac(ethernetframe *e) {
     return new_macaddress(false, (e->p_data + 6)); // replace 6 with MAC_LEN macro;
 }
 
 // Extracts from Ethernet header what protocol this transports in its data
-unsigned int ether_code(ethernetframe* e) {
+unsigned int ether_code(ethernetframe *e) {
     if (e->p_data) {
-        return char2word(e->p_data + 12);
+        return char2word(e->p_data + 12); // after destination and source mac address, each is 6 bytes 
     } else {
         return 0;
     }
@@ -23,9 +24,11 @@ unsigned int ether_code(ethernetframe* e) {
 
 // Returns an enum value corresponding to what this transports. Only the most frequent 
 // layer two protocols arew listed - there are more than one hundred of them in reality!
-etherType ether_type(ethernetframe* e) {
+etherType ether_type(ethernetframe *e) {
+    // values of 1500 (0x05DC) and below indicate that it is used as the size of the payload in bytes
     if(e->ether_code(e) <= 0x05DC) {
         return et_Length;
+    // values of 1536 (0x0600) and above indicate that it is used to represent EtherType.
     } else {
         switch(e->ether_code(e)) {
             case 0x6000 : return et_DEC;
@@ -45,7 +48,38 @@ etherType ether_type(ethernetframe* e) {
     } 
 }
 
-void print_ethernetframe(ethernetframe* e) {
+// Priority Code Point (PCP): a 3-bit field which refers to the IEEE 802.1Q frame priority level. 
+// Values range from 0 (best effort) to 7 (highest), 1 representing the lowest priority.
+// This code is stored in the 3 most significant bits of the header's 14th byte
+unsigned int pcp_8021q(ethernetframe *e) {
+    if(e->ether_type(e) != et_802_1Q) {
+        exit(EXIT_FAILURE);
+    }
+    return e->p_data[14] >> 5; // right shift 5 bits to get the 3-bit field
+}
+
+// Drop Eligible Indicator (DEI): a 1-bit field that may be used separately or 
+// in conjunction with PCP to indicate frames eligible to be dropped in times of congestion.
+// This code is stored in the 4th most significant bit of the header's  14th byte
+unsigned int dei_8021q(ethernetframe *e) {
+    if(e->ether_type(e) != et_802_1Q) {
+        exit(EXIT_FAILURE);
+    }
+    return (e->p_data[14] >> 4) & 0x01; // right shift 4 bits then AND with 0001
+}
+
+// VLAN Identifier (VID): a 12-bit field specifying the VLAN to which the frame belongs. 
+// The values 0x000 and 0xFFF are reserved, but all other values may be used as VLAN identifiers, 
+// allowing up to 4,094 VLANs.
+// This code is stored in the 12 least significant bits of the header's 14th and 15th bytes
+unsigned int vid_8021q(ethernetframe *e) {
+    if(e->ether_type(e) != et_802_1Q) {
+        exit(EXIT_FAILURE);
+    }
+    return (char2word(e->p_data + 14)) & 0x0FFF;
+}
+
+void print_ethernetframe(ethernetframe *e) {
     if (e->p_data) {
         // Display Mac addresses
         macaddress *d = e->destination_mac(e),
@@ -76,7 +110,15 @@ void print_ethernetframe(ethernetframe* e) {
             case et_loopback:   printf("loopback [%s]\n", outstr);     break;
             default:            printf("unknown [%s]\n", outstr);      break;
         }
-
+        // If the frame is 802.1Q, the header contains 4 more bytes.
+        // Destination MAC(6 bytes) + Source MAC(6 bytes) + 802.1Q headr(4 bytes) + Frame Type(2 bytes) 
+        if (e->ether_type(e) == et_802_1Q) {
+            sprintf(outstr, "0x%.4x", char2word(e->p_data + 12));
+            printf("ether type = 802.1Q [%s]\n", outstr);
+            printf("802.1Q priority code point (PCP) = %d \n", e->pcp_8021q(e));
+            printf("802.1Q drop eligible indicator (DEI) = %d \n", e->dei_8021q(e));
+            printf("802.1Q vlan identifier (VID) = %d \n", e->vid_8021q(e));
+        } 
     }
 }
 
@@ -89,6 +131,9 @@ ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int
     e->source_mac = source_mac;
     e->ether_code = ether_code;
     e->ether_type = ether_type;
+    e->pcp_8021q = pcp_8021q;
+    e->dei_8021q = dei_8021q;
+    e->vid_8021q = vid_8021q;
     if (e->owned) { // copy data into a new block
         memcpy(e->p_data, p_data, p_len);
     } else {

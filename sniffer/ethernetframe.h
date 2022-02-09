@@ -20,6 +20,9 @@ struct ethernetframe_ {
     macaddress* (*source_mac)(ethernetframe *self);
     unsigned int (*ether_code)(ethernetframe *self);
     etherType (*ether_type)(ethernetframe *self);
+    unsigned int (*pcp_8021q)(ethernetframe *self);
+    unsigned int (*dei_8021q)(ethernetframe *self); 
+    unsigned int (*vid_8021q)(ethernetframe *self); 
 };
 
 ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int p_len);
