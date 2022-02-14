@@ -48,6 +48,31 @@ etherType ether_type(ethernetframe *e) {
     } 
 }
 
+// Returns the Ethernet header length, which depends on the type of frame
+unsigned int header_length(ethernetframe *e) {
+    if(!e->p_data) {
+        return 0;
+    } else if (e->ether_type(e) == et_802_1Q) {
+        return 18;
+    } else {
+        return 14;
+    }
+}
+
+// Returns number of bytes in ethernetframe
+unsigned int length(ethernetframe *e) {
+    return e->p_len;
+}
+
+// Returns a pointer to beginning of transported data (passed the header)
+unsigned char* data(ethernetframe *e) {
+    if (e->header_length(e) < e->length(e)) {
+        return e->p_data + e->header_length(e);
+    } else {
+        return NULL;
+    }
+}
+
 // Priority Code Point (PCP): a 3-bit field which refers to the IEEE 802.1Q frame priority level. 
 // Values range from 0 (best effort) to 7 (highest), 1 representing the lowest priority.
 // This code is stored in the 3 most significant bits of the header's 14th byte
@@ -131,6 +156,9 @@ ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int
     e->source_mac = source_mac;
     e->ether_code = ether_code;
     e->ether_type = ether_type;
+    e->length = length;
+    e->header_length = header_length;
+    e->data = data;
     e->pcp_8021q = pcp_8021q;
     e->dei_8021q = dei_8021q;
     e->vid_8021q = vid_8021q;
@@ -140,4 +168,13 @@ ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int
         e->p_data = p_data;
     }
     return e;
+}
+
+// Returns an instance of the IPv4 datagram transported as payload
+ippacket* create_ippacket(ethernetframe *e) {
+    if (e->ether_type(e) != et_IPv4) {
+        exit(EXIT_FAILURE);
+    }
+    // ip packet bytes start after the ethernetframe header
+    return new_ippacket(false, e->data(e), e->length(e) - e->header_length(e));
 }

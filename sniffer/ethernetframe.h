@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "macaddress.h"
+#include "ippacket.h"
 
 typedef struct ethernetframe_ ethernetframe;
 
@@ -20,13 +21,15 @@ struct ethernetframe_ {
     macaddress* (*source_mac)(ethernetframe *self);
     unsigned int (*ether_code)(ethernetframe *self);
     etherType (*ether_type)(ethernetframe *self);
+    unsigned int (*header_length)(ethernetframe *self);
+    unsigned int (*length)(ethernetframe *self);
+    unsigned char* (*data)(ethernetframe *self);
     unsigned int (*pcp_8021q)(ethernetframe *self);
     unsigned int (*dei_8021q)(ethernetframe *self); 
     unsigned int (*vid_8021q)(ethernetframe *self); 
+    ippacket* (*create_ippacket)(ethernetframe *self);
 };
 
 ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int p_len);
-
-
 
 #endif

@@ -1,12 +1,12 @@
 SNIFFER = sniffer
 
-SRC = sniffer.c datagram.c ethernetframe.c macaddress.c utils.c
+SRC = sniffer.c datagram.c ethernetframe.c macaddress.c utils.c ippacket.c
 OBJ = $(SRC:.c=.o)
 
 CC = cc
 RM = rm
 
-CFLAG = -g
+CFLAGS = -g
 LIBS = -lpcap
 LDFLAGS =
 

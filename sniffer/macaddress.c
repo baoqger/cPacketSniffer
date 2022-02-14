@@ -5,14 +5,14 @@
 
 
 
-unsigned int length(macaddress *m) {
+unsigned int macaddress_length(macaddress *m) {
     return m->p_len;
 }
 
 void print_macaddress(macaddress *m) {
-    for (unsigned int i = 0; i < m->length(m); i++) {
+    for (unsigned int i = 0; i < m->macaddress_length(m); i++) {
         printf("%.2x", m->p_data[i]);
-        if (i < m->length(m) - 1) {
+        if (i < m->macaddress_length(m) - 1) {
             printf(".");
         }
     }
@@ -27,7 +27,7 @@ macaddress* new_macaddress(bool owned, unsigned char *p_data) {
     m->owned = owned;
     m->p_len = MAC_LEN;
     m->print_macaddress = print_macaddress;
-    m->length = length;
+    m->macaddress_length = macaddress_length;
     if (m->owned) { // copy data into a new block
         memcpy(m->p_data, p_data, m->p_len);
     } else {

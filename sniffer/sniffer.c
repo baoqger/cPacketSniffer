@@ -9,6 +9,7 @@
 #include <stdbool.h> // bool
 #include "datagram.h"
 #include "ethernetframe.h"
+#include "ippacket.h"
 
 pcap_t *pcap_session = NULL; // libpcap session handle
 
@@ -34,11 +35,21 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
     datagram *d = new_datagram(packet, h->caplen);
     if (show_raw) {
         d->print_datagram(d);
-        d->free_datagram(d);
     }
     // create ethernetframe instance
     ethernetframe *e = d->create_ethernetframe(d);
+    printf("---------- Ethernet frame header ----------\n");
     e->print_ethernetframe(e);
+    // Display payload content according to EtherType
+    switch(e->ether_type(e)) {
+        case et_IPv4: {
+            // create ippacket instance
+            ippacket *i = e->create_ippacket(e);
+            printf("-------- IP packet header --------\n");
+        }
+    } 
+
+
 }
 
 
