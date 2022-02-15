@@ -15,6 +15,9 @@ LDFLAGS =
 
 all: $(SNIFFER)
 
+debug: CFLAGS += -ggdb -O0
+debug: $(SNIFFER)
+
 $(SNIFFER): $(OBJ)
 	$(CC) -o $@ $(OBJ) $(CFLAGS) $(LIBS)
 

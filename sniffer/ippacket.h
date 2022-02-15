@@ -7,7 +7,7 @@ typedef struct ippacket_ ippacket;
 
 struct ippacket_ {
     bool owned;
-    unsigned char* p_data;
+    unsigned char *p_data;
     unsigned int p_len;
 };
 
