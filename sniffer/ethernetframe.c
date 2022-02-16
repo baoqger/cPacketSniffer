@@ -147,6 +147,15 @@ void print_ethernetframe(ethernetframe *e) {
     }
 }
 
+// Returns an instance of the IPv4 datagram transported as payload
+ippacket* create_ippacket(ethernetframe *e) {
+    if (e->ether_type(e) != et_IPv4) {
+        exit(EXIT_FAILURE);
+    }
+    // ip packet bytes start after the ethernetframe header
+    return new_ippacket(false, e->data(e), e->length(e) - e->header_length(e));
+}
+
 ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int p_len) {
     ethernetframe *e = malloc(sizeof(ethernetframe));
     e->p_len = p_len;
@@ -162,6 +171,7 @@ ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int
     e->pcp_8021q = pcp_8021q;
     e->dei_8021q = dei_8021q;
     e->vid_8021q = vid_8021q;
+    e->create_ippacket = create_ippacket;
     if (e->owned) { // copy data into a new block
         memcpy(e->p_data, p_data, p_len);
     } else {
@@ -170,11 +180,3 @@ ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int
     return e;
 }
 
-// Returns an instance of the IPv4 datagram transported as payload
-ippacket* create_ippacket(ethernetframe *e) {
-    if (e->ether_type(e) != et_IPv4) {
-        exit(EXIT_FAILURE);
-    }
-    // ip packet bytes start after the ethernetframe header
-    return new_ippacket(false, e->data(e), e->length(e) - e->header_length(e));
-}
