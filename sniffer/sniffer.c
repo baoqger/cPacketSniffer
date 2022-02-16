@@ -46,6 +46,7 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
             // create ippacket instance
             ippacket *i = e->create_ippacket(e);
             printf("-------- IP packet header --------\n");
+            i->print_ippacket(i);
         }
     } 
 
