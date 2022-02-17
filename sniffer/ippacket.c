@@ -57,6 +57,34 @@ unsigned int fragment_pos(ippacket *i) {
     return d << 8 | i->p_data[7];
 }
 
+// Protocol: This field defines the protocol transported in the data portion of the IP datagram.
+// store 9th bytes of ip packet
+unsigned int protocol_id(ippacket *i) {
+    return i->p_data[9];
+}
+
+// Indicates which protocol is encapsulated within the packet's payload
+ipprotocol protocol(ippacket *i) {
+    switch(i->protocol_id(i)) {
+        case 1: return ipp_icmp;
+        case 2: return ipp_igmp;
+        case 6: return ipp_tcp;
+        case 17: return ipp_udp;
+        default: return ipp_other; 
+    }
+}
+
+// Time To Live (TTL): This eight-bit field helps prevent datagrams from circulating forever on an Internet. 
+// store in the 8th byte of ip packet 
+unsigned int ttl(ippacket *i) {
+    return i->p_data[8];
+}
+
+// Checksum: The 16-bit checksum field is used for error-checking of the header.
+unsigned int checksum(ippacket *i) {
+    return char2word(i->p_data + 10);
+}
+
 void print_ippacket(ippacket *i) {
     if (i->p_data) {
         char outstr[8];
@@ -109,6 +137,18 @@ void print_ippacket(ippacket *i) {
         printf(" fragment position = %d\n", i->fragment_pos(i));
 
         printf("protocol = ");
+        switch(i->protocol(i)) {
+            case ipp_icmp: printf("ICMP ["); break;
+            case ipp_igmp: printf("IGMP ["); break;
+            case ipp_tcp: printf("TCP ["); break;
+            case ipp_udp: printf("UDP ["); break;
+            default: printf("unknown ["); break;
+        }
+        printf("0x%.2x]\n", i->protocol_id(i));
+
+        printf("time to live = %d\n", i->ttl(i));
+
+        printf("checksum = 0x%.4x \n", i->checksum(i));
     }
 }
 
@@ -125,6 +165,10 @@ ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     i->fragment_id = fragment_id;
     i->fragment_flags = fragment_flags;
     i->fragment_pos = fragment_pos;
+    i->protocol_id = protocol_id;
+    i->protocol = protocol;
+    i->ttl = ttl;
+    i->checksum = checksum;
     if (i->owned) { // copy data into a new block
         memcpy(i->p_data, p_data, p_len); 
     } else {

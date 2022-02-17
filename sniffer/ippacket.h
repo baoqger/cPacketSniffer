@@ -5,6 +5,10 @@
 
 typedef struct ippacket_ ippacket;
 
+typedef enum ipprotocol_ {
+    ipp_icmp, ipp_igmp, ipp_udp, ipp_tcp, ipp_other, ipp_none
+} ipprotocol;
+
 struct ippacket_ {
     bool owned;
     unsigned char *p_data;
@@ -18,6 +22,10 @@ struct ippacket_ {
     unsigned int(*fragment_id)(ippacket *self);
     unsigned int(*fragment_flags)(ippacket *self);
     unsigned int(*fragment_pos)(ippacket *self);
+    unsigned int(*protocol_id)(ippacket *self);
+    unsigned int(*protocol)(ippacket *self);
+    unsigned int(*ttl)(ippacket *self);
+    unsigned int(*checksum)(ippacket *self);
 };
 
 ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len);
