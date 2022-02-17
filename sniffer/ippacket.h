@@ -29,6 +29,8 @@ struct ippacket_ {
     unsigned int(*checksum)(ippacket *self);
     ipaddress* (*destination_ip)(ippacket *self);
     ipaddress* (*source_ip)(ippacket *self);
+    unsigned int(*count_options)(ippacket *self);
+    bool (*option_header)(ippacket *self, unsigned int idx, unsigned int *optclass, unsigned int *optnumber, unsigned int *optlen);
 };
 
 ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len);

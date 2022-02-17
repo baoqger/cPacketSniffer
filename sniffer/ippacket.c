@@ -101,6 +101,53 @@ ipaddress* source_ip(ippacket *i) {
     }
 }
 
+unsigned int count_options(ippacket *i) {
+    unsigned int cnt = 0;
+    
+    if (i->ip_header_length(i) == 20) {
+        return cnt;
+    }
+
+    unsigned char *p = i->p_data + 20;
+    unsigned int optclass, optnumber;
+    while((p - i->p_data) < i->ip_header_length(i) && *p != 0) {
+        optclass = (*p & 0x60) >> 5;
+        optnumber = *p & 0x1F;
+        
+        if (optnumber < 2) {
+            p++;
+        } else {
+            p += p[1] + 2; // what is this? 
+        }
+        cnt++;
+    }
+    return cnt;
+}
+
+
+bool option_header(ippacket *i, unsigned int idx, unsigned int *optclass, unsigned int *optnumber, unsigned int *optlen) {
+    if (idx < 0 || idx >= i->count_options(i)) {
+        return false; 
+    }
+
+    unsigned char *p = i->p_data + 20;
+
+    do {
+        *optclass = (*p & 0x60) >> 5; 
+        *optnumber = *p & 0x1F; 
+
+        if (*optnumber < 2) {
+            *optlen = 0;
+            p++;
+        } else {
+            *optlen = p[1];
+            p += *optlen + 2;
+        }
+    } while(idx--);
+
+    return true; 
+}
+
 void print_ippacket(ippacket *i) {
     if (i->p_data) {
         char outstr[8];
@@ -175,6 +222,29 @@ void print_ippacket(ippacket *i) {
         printf("source IP addrress = ");
         s->print_ipaddress(s);
 
+        if (i->count_options(i) > 0) {
+            printf("%d options: ", i->count_options(i));
+
+            // Display each option
+            for (int j = 0; j < i->count_options(i); j++) {
+                unsigned int optclass, optnumber, optlen;
+                if (i->option_header(i, j, &optclass, &optnumber, &optlen)) {
+                    printf(" option # %d: class = %d, number = %d", j, optclass, optnumber);
+
+                    switch(optnumber) {
+                        case 1: printf(" (nop)"); break;
+                        case 2: printf(" (security)"); break;
+                        case 3: printf(" (loose source routing)"); break;
+                        case 4: printf(" (internet timestamp)"); break;
+                        case 7: printf(" (record route)"); break;
+                        case 8: printf(" (stream id)"); break;
+                        case 9: printf(" (strict source routing)"); break;
+                    }
+
+                    printf(", length = %d\n", optlen);
+                }
+            }
+        }
     }
 }
 
@@ -197,6 +267,8 @@ ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     i->checksum = checksum;
     i->destination_ip = destination_ip;
     i->source_ip = source_ip;
+    i->count_options = count_options;
+    i->option_header = option_header;
     if (i->owned) { // copy data into a new block
         memcpy(i->p_data, p_data, p_len); 
     } else {
