@@ -2,6 +2,7 @@
 #define _IPPACKET_H
 
 #include <stdbool.h>
+#include "ipaddress.h"
 
 typedef struct ippacket_ ippacket;
 
@@ -26,6 +27,8 @@ struct ippacket_ {
     unsigned int(*protocol)(ippacket *self);
     unsigned int(*ttl)(ippacket *self);
     unsigned int(*checksum)(ippacket *self);
+    ipaddress* (*destination_ip)(ippacket *self);
+    ipaddress* (*source_ip)(ippacket *self);
 };
 
 ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len);

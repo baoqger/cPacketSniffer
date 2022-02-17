@@ -85,6 +85,22 @@ unsigned int checksum(ippacket *i) {
     return char2word(i->p_data + 10);
 }
 
+ipaddress* destination_ip(ippacket *i) {
+    if (i->version(i) == 4) {
+        return new_ipaddress(false, i->p_data + 16);
+    } else {
+        exit(EXIT_FAILURE);
+    }
+}
+
+ipaddress* source_ip(ippacket *i) {
+    if (i->version(i) == 4) {
+        return new_ipaddress(false, i->p_data + 12);
+    } else {
+        exit(EXIT_FAILURE);
+    }
+}
+
 void print_ippacket(ippacket *i) {
     if (i->p_data) {
         char outstr[8];
@@ -149,6 +165,16 @@ void print_ippacket(ippacket *i) {
         printf("time to live = %d\n", i->ttl(i));
 
         printf("checksum = 0x%.4x \n", i->checksum(i));
+
+        // Display IP addrresses
+        ipaddress *d = i->destination_ip(i),
+                  *s = i->source_ip(i);
+
+        printf("destination IP address = ");
+        d->print_ipaddress(d);
+        printf("source IP addrress = ");
+        s->print_ipaddress(s);
+
     }
 }
 
@@ -169,6 +195,8 @@ ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     i->protocol = protocol;
     i->ttl = ttl;
     i->checksum = checksum;
+    i->destination_ip = destination_ip;
+    i->source_ip = source_ip;
     if (i->owned) { // copy data into a new block
         memcpy(i->p_data, p_data, p_len); 
     } else {
