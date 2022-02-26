@@ -14,11 +14,15 @@
 pcap_t *pcap_session = NULL; // libpcap session handle
 char *strfilter = NULL; // textual BPF filter
 struct bpf_program binfilter; // compiled BPF filter program
-
+pcap_dumper_t *logfile = NULL; // file descriptor for datagram logging
 bool show_raw = false; // deactivate raw display of data captured
 
 // Function releasing all resources before ending program execution
 static void shutdown_sniffer(int error_code) {
+    // close log file
+    if (logfile != NULL) {
+        pcap_dump_close(logfile);
+    }
     // Destroy compiled BPF filter if need
     if (strfilter != NULL) {
         pcap_freecode(&binfilter);
@@ -64,7 +68,10 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
             i->print_ippacket(i);
         }
     } 
-
+    // log datagram if required
+    if (user != NULL) {
+        pcap_dump(user, h, packet);
+    }
 
 }
 
@@ -76,6 +83,9 @@ int main(int argc, char *argv[]) {
     int  siz = 1518,    // max number of bytes captured for each datagram
          promisc = 0,    // deactive promiscuous mode?? promiscuous mode??
          cnt = -1;       // capture indefinitely
+    char *wlogfname = NULL, // filename where to log captured datagrams
+         *rlogfname = NULL; // filename from which to read logged datagrams 
+
 
     // install ctrl+c handle
     struct sigaction sa, osa;
@@ -83,7 +93,7 @@ int main(int argc, char *argv[]) {
     sa.sa_handler  = &bypass_sigint;
     sigaction(SIGINT, &sa, &osa);
 
-    while((argch = getopt(argc, argv, "hprd:f:n:")) != EOF) {
+    while((argch = getopt(argc, argv, "hprd:f:i:l:n:")) != EOF) {
         switch(argch) {
             case 'd': // device name
                 device = optarg;
@@ -91,16 +101,23 @@ int main(int argc, char *argv[]) {
             case 'f': // BPF filter
                 strfilter = optarg;
                 break;
-
             case 'h':
                 printf("Usage: sniff [-d XXX -h]\n");
                 printf("-d XXX: device to capture from, where XXX is device name (ex: eth0).\n");
                 printf("-f 'filter' : filter captures according to BPF expression (ex: 'ip or arp'). \n");
                 printf("-h : show this information.\n");
+                printf("-i file: read datagram from given file instead of a device.\n");
+                printf("-l file: log captured datagrams in given file.\n");
                 printf("-n : number of datagrams to capture.\n");
                 printf("-p : active promiscuous capture mode.\n");
                 printf("-r : active raw display of captured data.\n");
                 if (argc == 2) return 0;
+                break;
+            case 'i': // filename from which to read logged datagram
+                rlogfname = optarg;
+                break;
+            case 'l': // filename where to log captured datagrams
+                wlogfname = optarg;
                 break;
             case 'n': // number of datagrams to capture
                 cnt = atoi(optarg);
@@ -114,11 +131,23 @@ int main(int argc, char *argv[]) {
 
         }
     }
+    // option -d and -i are mutually exclusives
+    if (device != NULL && rlogfname != NULL) {
+        fprintf(stderr, "error - options -d and -i are mutually exclusives\n");
+        return -7;
+    }
+
 
     // identify device to use
-    if (device == NULL && (device = pcap_lookupdev(errbuf)) == NULL) {
-        fprintf(stderr, "error - %s", errbuf);
-        return -2;
+    if (device == NULL && rlogfname == NULL) {
+        if ((device = pcap_lookupdev(errbuf)) == NULL) {
+            fprintf(stderr, "error - %s\n", errbuf);
+            return -2;
+        }
+    }  
+
+    if (rlogfname != NULL) {
+        printf("input file = %s\n", rlogfname);
     } else {
         printf("device = %s %s\n", device, promisc ? " (promiscuous)": "");
     }
@@ -151,13 +180,20 @@ int main(int argc, char *argv[]) {
     }
 
     // Open a libpcap capture session
-    pcap_session = pcap_open_live(device, siz, promisc, 1000, errbuf);
-    
-    if (pcap_session == NULL) {
-        fprintf(stderr, "error - pcap_open_live() failed: %s", errbuf);
-        return -4;
+    if (rlogfname == NULL) {
+        // session linked to the device
+        pcap_session = pcap_open_live(device, siz, promisc, 1000, errbuf);
+        if (pcap_session == NULL) {
+            fprintf(stderr, "error - pcap_open_live() failed: %s\n", errbuf);
+            return -4;
+        }
+    } else {
+        // session linked to the log file
+        pcap_session = pcap_open_offline(rlogfname, errbuf);
+        if (pcap_session == NULL) {
+            fprintf(stderr, "error - pcap_open_offline() failed: %s\n", errbuf);
+        }
     }
-
     // Compile BPF filter expression into program if one provided
     if (strfilter != NULL) {
         // compile filter expression
@@ -165,18 +201,25 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "error - pcap_compile() failed (%s)\n", pcap_geterr(pcap_session));
             shutdown_sniffer(-5); 
         }
+
+        // install compiled filter
+        if (pcap_setfilter(pcap_session, &binfilter) < 0) {
+            fprintf(stderr, "error - pcap_setfilter() failed (%s)\n", pcap_geterr(pcap_session));
+            shutdown_sniffer(-6);
+        }
+
+        printf("BPF filter = %s\n", strfilter);
     }
 
-    // install compiled filter
-    if (pcap_setfilter(pcap_session, &binfilter) < 0) {
-        fprintf(stderr, "error - pcap_setfilter() failed (%s)\n", pcap_geterr(pcap_session));
-        shutdown_sniffer(-6);
+    if(wlogfname != NULL) {
+        if((logfile = pcap_dump_open(pcap_session, wlogfname)) == NULL) {
+            fprintf(stderr, "error - pcap_dumpj_open() failed (%s)\n", pcap_geterr(pcap_session));
+            shutdown_sniffer(-9);
+        }
     }
-
-    printf("BPF filter = %s\n", strfilter);
 
     // Start capturing
-    pcap_loop(pcap_session, cnt, process_packet, NULL);
+    pcap_loop(pcap_session, cnt, process_packet, (u_char *)logfile);
 
     // close the session
     pcap_close(pcap_session);
