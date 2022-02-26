@@ -12,8 +12,23 @@
 #include "ippacket.h"
 
 pcap_t *pcap_session = NULL; // libpcap session handle
+char *strfilter = NULL; // textual BPF filter
+struct bpf_program binfilter; // compiled BPF filter program
 
 bool show_raw = false; // deactivate raw display of data captured
+
+// Function releasing all resources before ending program execution
+static void shutdown_sniffer(int error_code) {
+    // Destroy compiled BPF filter if need
+    if (strfilter != NULL) {
+        pcap_freecode(&binfilter);
+    }
+    // close libpcap session
+    if (pcap_session != NULL) {
+        pcap_close(pcap_session);
+    }
+    exit(error_code);
+}
 
 // ctrl+c interrupt hanlder
 void bypass_sigint(int sig_no) {
@@ -68,15 +83,19 @@ int main(int argc, char *argv[]) {
     sa.sa_handler  = &bypass_sigint;
     sigaction(SIGINT, &sa, &osa);
 
-    while((argch = getopt(argc, argv, "hprd:n:")) != EOF) {
+    while((argch = getopt(argc, argv, "hprd:f:n:")) != EOF) {
         switch(argch) {
             case 'd': // device name
                 device = optarg;
                 break;
-            
+            case 'f': // BPF filter
+                strfilter = optarg;
+                break;
+
             case 'h':
                 printf("Usage: sniff [-d XXX -h]\n");
                 printf("-d XXX: device to capture from, where XXX is device name (ex: eth0).\n");
+                printf("-f 'filter' : filter captures according to BPF expression (ex: 'ip or arp'). \n");
                 printf("-h : show this information.\n");
                 printf("-n : number of datagrams to capture.\n");
                 printf("-p : active promiscuous capture mode.\n");
@@ -139,11 +158,28 @@ int main(int argc, char *argv[]) {
         return -4;
     }
 
+    // Compile BPF filter expression into program if one provided
+    if (strfilter != NULL) {
+        // compile filter expression
+        if (pcap_compile(pcap_session, &binfilter, strfilter, 1, maskp) < 0) {
+            fprintf(stderr, "error - pcap_compile() failed (%s)\n", pcap_geterr(pcap_session));
+            shutdown_sniffer(-5); 
+        }
+    }
+
+    // install compiled filter
+    if (pcap_setfilter(pcap_session, &binfilter) < 0) {
+        fprintf(stderr, "error - pcap_setfilter() failed (%s)\n", pcap_geterr(pcap_session));
+        shutdown_sniffer(-6);
+    }
+
+    printf("BPF filter = %s\n", strfilter);
+
     // Start capturing
     pcap_loop(pcap_session, cnt, process_packet, NULL);
 
     // close the session
     pcap_close(pcap_session);
         
-    return 0;
+    shutdown_sniffer(0);
 }
