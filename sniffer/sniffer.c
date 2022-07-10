@@ -152,7 +152,6 @@ int main(int argc, char *argv[]) {
     }
 
 
-    // printf("debug: %s\n", fetch_device(errbuf));
     // identify device to use
     if (device == NULL && rlogfname == NULL) {
         if ((device = fetch_device(errbuf)) == NULL) {
