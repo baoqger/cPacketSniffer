@@ -75,6 +75,20 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
 
 }
 
+static char* fetch_device(char *errbuf) {
+    pcap_if_t *ift = NULL;
+    char *dev = NULL;
+    if(pcap_findalldevs(&ift, errbuf) == 0) {
+        if(ift) {
+            dev = malloc(sizeof(char) * (strlen(ift->name) + 1));
+            strcpy(dev, ift->name);
+        }
+        pcap_freealldevs(ift);
+    } else {
+        fprintf(stderr, "error: %s\n", errbuf);
+    }
+    return dev;
+}
 
 int main(int argc, char *argv[]) {
     char *device = NULL;  // device to sniff
@@ -138,9 +152,10 @@ int main(int argc, char *argv[]) {
     }
 
 
+    // printf("debug: %s\n", fetch_device(errbuf));
     // identify device to use
     if (device == NULL && rlogfname == NULL) {
-        if ((device = pcap_lookupdev(errbuf)) == NULL) {
+        if ((device = fetch_device(errbuf)) == NULL) {
             fprintf(stderr, "error - %s\n", errbuf);
             return -2;
         }
