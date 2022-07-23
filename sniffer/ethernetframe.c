@@ -156,6 +156,14 @@ ippacket* create_ippacket(ethernetframe *e) {
     return new_ippacket(false, e->data(e), e->length(e) - e->header_length(e));
 }
 
+// Returna an instance of APR packet 
+arppacket* create_arppacket(ethernetframe *e) {
+    if (e->ether_type(e) != et_ARP) { // make sure it transport ARP protocol 
+        exit(EXIT_FAILURE);
+    }
+    return new_arppacket(false, e->data(e), e->length(e) - e->header_length(e));
+}
+
 ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int p_len) {
     ethernetframe *e = malloc(sizeof(ethernetframe));
     e->p_len = p_len;

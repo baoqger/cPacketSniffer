@@ -10,6 +10,7 @@
 #include "datagram.h"
 #include "ethernetframe.h"
 #include "ippacket.h"
+#include "arppacket.h"
 
 pcap_t *pcap_session = NULL; // libpcap session handle
 char *strfilter = NULL; // textual BPF filter
@@ -66,7 +67,16 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
             ippacket *i = e->create_ippacket(e);
             printf("-------- IP packet header --------\n");
             i->print_ippacket(i);
+            break;
         }
+        case et_ARP: {
+            // create arppacket instance
+            arppacket *a = e->create_arppacket(e);
+            printf("--------- ARP packet header--------\n");
+            a->print_arppacket(a);
+            break;
+        }
+        
     } 
     // log datagram if required
     if (user != NULL) {

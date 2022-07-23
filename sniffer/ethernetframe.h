@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "macaddress.h"
 #include "ippacket.h"
+#include "arppacket.h"
 
 typedef struct ethernetframe_ ethernetframe;
 
@@ -28,6 +29,7 @@ struct ethernetframe_ {
     unsigned int (*dei_8021q)(ethernetframe *self); 
     unsigned int (*vid_8021q)(ethernetframe *self); 
     ippacket* (*create_ippacket)(ethernetframe *self);
+    arppacket* (*create_arppacket)(ethernetframe *self);    
 };
 
 ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int p_len);

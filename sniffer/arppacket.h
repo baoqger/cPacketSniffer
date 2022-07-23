@@ -33,10 +33,12 @@ struct arppacket_ {
     unsigned int (*protocol_type_code)(arppacket *self);
     ARPHardwareType (*hardware_type)(arppacket *self);
     unsigned int (*hardware_type_code)(arppacket *self);
-    macaddress (*destination_mac)(arppacket *self);
-    macaddress (*source_mac)(arppacket *self);
-    ipaddress (*destination_ip)(arppacket *self);
-    ipaddress (*source_ip)(arppacket *self);
+    macaddress* (*destination_mac)(arppacket *self);
+    macaddress* (*source_mac)(arppacket *self);
+    ipaddress* (*destination_ip)(arppacket *self);
+    ipaddress* (*source_ip)(arppacket *self);
+    unsigned int (*hardware_adr_length)(arppacket *self);
+    unsigned int (*protocol_adr_length)(arppacket *self);
     void (*print_arppacket)(arppacket *self);
 };
 
