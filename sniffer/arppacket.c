@@ -136,11 +136,11 @@ void print_arppacket(arppacket *a) {
         // Display operation textually along its corresponding code
         printf("packet type = ");
         switch(a->operation(a)) {
-            case akt_ArpRequest:  printf("ARP request [%s]\n", outstr); 
-            case akt_ArpReply:    printf("ARP reply [%s]\n", outstr);
-            case akt_RarpRequest: printf("RARP requesst [%s]\n", outstr);
-            case akt_RarpReply:   printf("RARP reply [%s]\n", outstr);
-            default:              printf("unknown [%s]",outstr);
+            case akt_ArpRequest:  printf("ARP request [%s]\n", outstr);   break;  
+            case akt_ArpReply:    printf("ARP reply [%s]\n", outstr);     break;
+            case akt_RarpRequest: printf("RARP requesst [%s]\n", outstr); break;
+            case akt_RarpReply:   printf("RARP reply [%s]\n", outstr);    break;
+            default:              printf("unknown [%s]",outstr);          break;
         }
         // Display hardware address
         macaddress *d = a->destination_mac(a),
@@ -165,11 +165,11 @@ void print_arppacket(arppacket *a) {
 
         printf("hardware type = ");
         switch(a->hardware_type(a)) {
-            case aht_Ethernet:   printf("Ethernet [%s]\n", outstr);
-            case aht_FrameRelay: printf("Frame Relay [%s]\n", outstr);
-            case aht_ATM       : printf("Asynchronous Transmission Mode {ATM} [%s]\n", outstr);
-            case aht_IPSec     : printf("IPSec tunnel [%s]\n", outstr);
-            default            : printf("unknown [%s]\n", outstr);  
+            case aht_Ethernet:   printf("Ethernet [%s]\n", outstr);  break;
+            case aht_FrameRelay: printf("Frame Relay [%s]\n", outstr); break;
+            case aht_ATM       : printf("Asynchronous Transmission Mode {ATM} [%s]\n", outstr); break;
+            case aht_IPSec     : printf("IPSec tunnel [%s]\n", outstr); break;
+            default            : printf("unknown [%s]\n", outstr);  break;
         }
 
         // Get protocol type
@@ -179,11 +179,11 @@ void print_arppacket(arppacket *a) {
         printf("protocol type = ");
 
         switch(a->protocol_type(a)) {
-            case apt_IPv4:   printf("IPv4 [%s]\n", outstr);
-            case apt_IPX:    printf("IPX [%s]\n", outstr);
-            case apt_802_1Q: printf("IEEE 802.1Q [%s]\n", outstr);
-            case apt_IPv6:   printf("IPv6 [%s]\n", outstr);
-            default:         printf("unknown [%s]\n", outstr);
+            case apt_IPv4:   printf("IPv4 [%s]\n", outstr);  break;
+            case apt_IPX:    printf("IPX [%s]\n", outstr);   break;
+            case apt_802_1Q: printf("IEEE 802.1Q [%s]\n", outstr); break;
+            case apt_IPv6:   printf("IPv6 [%s]\n", outstr); break;
+            default:         printf("unknown [%s]\n", outstr); break;
         }
     }
 }

@@ -180,6 +180,7 @@ ethernetframe* new_ethernetframe(bool owned, unsigned char *p_data, unsigned int
     e->dei_8021q = dei_8021q;
     e->vid_8021q = vid_8021q;
     e->create_ippacket = create_ippacket;
+    e->create_arppacket = create_arppacket;
     if (e->owned) { // copy data into a new block
         memcpy(e->p_data, p_data, p_len);
     } else {
