@@ -11,12 +11,17 @@
 #include "ethernetframe.h"
 #include "ippacket.h"
 #include "arppacket.h"
+#include "sniffer.h"
 
-pcap_t *pcap_session = NULL; // libpcap session handle
-char *strfilter = NULL; // textual BPF filter
-struct bpf_program binfilter; // compiled BPF filter program
+pcap_t *pcap_session = NULL;   // libpcap session handle
+char *strfilter = NULL;        // textual BPF filter
+struct bpf_program binfilter;  // compiled BPF filter program
 pcap_dumper_t *logfile = NULL; // file descriptor for datagram logging
-bool show_raw = false; // deactivate raw display of data captured
+bool show_raw = false;         // deactivate raw display of data captured
+bool quiet_mode = false;       // control whether the callback display captured datagrams or not
+int security_tool = 0;         // security tool to apply
+
+
 
 // Function releasing all resources before ending program execution
 static void shutdown_sniffer(int error_code) {
@@ -46,7 +51,7 @@ void bypass_sigint(int sig_no) {
 
 // callback given to pcap_loop() fro processing captural datagrams
 void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *packet) {
-    printf("Grabbed %d bytes (%d%%) of datagram received on %s", 
+    if(!quiet_mode) printf("Grabbed %d bytes (%d%%) of datagram received on %s", 
         h->caplen, 
         (int)(100.0 * h->caplen / h->len), 
         ctime((const time_t*)&h->ts.tv_sec)
@@ -54,26 +59,26 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
     // create datagram instance
     datagram *d = new_datagram(packet, h->caplen);
     if (show_raw) {
-        d->print_datagram(d);
+        if(!quiet_mode) d->print_datagram(d);
     }
     // create ethernetframe instance
     ethernetframe *e = d->create_ethernetframe(d);
-    printf("---------- Ethernet frame header ----------\n");
-    e->print_ethernetframe(e);
+    if(!quiet_mode) printf("---------- Ethernet frame header ----------\n");
+    if(!quiet_mode) e->print_ethernetframe(e);
     // Display payload content according to EtherType
     switch(e->ether_type(e)) {
         case et_IPv4: {
             // create ippacket instance
             ippacket *i = e->create_ippacket(e);
-            printf("-------- IP packet header --------\n");
-            i->print_ippacket(i);
+            if(!quiet_mode) printf("-------- IP packet header --------\n");
+            if(!quiet_mode) i->print_ippacket(i);
             break;
         }
         case et_ARP: {
             // create arppacket instance
             arppacket *a = e->create_arppacket(e);
-            printf("--------- ARP packet header--------\n");
-            a->print_arppacket(a);
+            if(!quiet_mode) printf("--------- ARP packet header--------\n");
+            if(!quiet_mode) a->print_arppacket(a);
             break;
         }
         
@@ -117,7 +122,7 @@ int main(int argc, char *argv[]) {
     sa.sa_handler  = &bypass_sigint;
     sigaction(SIGINT, &sa, &osa);
 
-    while((argch = getopt(argc, argv, "hprd:f:i:l:n:")) != EOF) {
+    while((argch = getopt(argc, argv, "hpqrd:f:i:l:n:")) != EOF) {
         switch(argch) {
             case 'd': // device name
                 device = optarg;
@@ -151,6 +156,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 'r': // active raw display of captured data
                 show_raw = 1;
+                break;
+            case 'q': // active quiet mode
+                quiet_mode = 1;
                 break;
 
         }
@@ -194,7 +202,7 @@ int main(int argc, char *argv[]) {
         printf("network ip = %s\n", net);
     }
 
-    // Translate network mask int textual for for display
+    // Translate network mask into textual for for display
     char *mask;
     addr.s_addr = maskp;
     if ((mask = inet_ntoa(addr)) == NULL) {
