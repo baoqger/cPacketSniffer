@@ -12,8 +12,9 @@ struct ipaddress_ {
     unsigned char *p_data;
     unsigned int p_int;
     void (*print_ipaddress)(ipaddress *i);
-};
+    };
 
 ipaddress* new_ipaddress(bool owned, unsigned char *p_data);
+char* get_ipaddress(ipaddress *i);
 
 #endif

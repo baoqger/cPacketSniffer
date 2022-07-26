@@ -12,6 +12,7 @@
 #include "ippacket.h"
 #include "arppacket.h"
 #include "sniffer.h"
+#include "ipaddress.h"
 
 pcap_t *pcap_session = NULL;   // libpcap session handle
 char *strfilter = NULL;        // textual BPF filter
@@ -79,6 +80,14 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
             arppacket *a = e->create_arppacket(e);
             if(!quiet_mode) printf("--------- ARP packet header--------\n");
             if(!quiet_mode) a->print_arppacket(a);
+            // Check if we must apply ARP spoofing detection
+            if (security_tool == ARPSPOOF) {
+                switch(a->operation(a)) {
+                    case akt_ArpRequest:
+                        printf("debug ip : %s\n", get_ipaddress(a->destination_ip(a)));
+                        break;
+                }
+            }
             break;
         }
         
@@ -122,7 +131,7 @@ int main(int argc, char *argv[]) {
     sa.sa_handler  = &bypass_sigint;
     sigaction(SIGINT, &sa, &osa);
 
-    while((argch = getopt(argc, argv, "hpqrd:f:i:l:n:")) != EOF) {
+    while((argch = getopt(argc, argv, "hpqrd:f:i:l:n:s:")) != EOF) {
         switch(argch) {
             case 'd': // device name
                 device = optarg;
@@ -160,6 +169,14 @@ int main(int argc, char *argv[]) {
             case 'q': // active quiet mode
                 quiet_mode = 1;
                 break;
+            case 's': // apply specified security tool
+                if(!strcmp(optarg, "arpspoof")) { // strcmp return 0 when two string are equal
+                    security_tool = ARPSPOOF;
+                } else {
+                    fprintf(stderr, "error = unknown security tool specified (%s)\n", optarg);
+                    return -10;
+                }
+                
 
         }
     }
@@ -209,6 +226,13 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "error - inet_ntoa() failed\n");
     } else {
         printf("network mask = %s\n", mask);
+    }
+
+    // Display any security application enabled
+    switch(security_tool) {
+        case ARPSPOOF: 
+            printf("ARP spoofing detection enabled...\n");
+            break;
     }
 
     // Open a libpcap capture session
