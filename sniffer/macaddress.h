@@ -17,5 +17,5 @@ struct macaddress_ {
 };
 
 macaddress* new_macaddress(bool owned, unsigned char *p_data); // macaddress length is fixed to 6 bytes
-
+char* get_macaddress(macaddress *m);
 #endif

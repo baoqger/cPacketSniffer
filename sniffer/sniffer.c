@@ -13,6 +13,7 @@
 #include "arppacket.h"
 #include "sniffer.h"
 #include "ipaddress.h"
+#include "simple-set.h"
 
 pcap_t *pcap_session = NULL;   // libpcap session handle
 char *strfilter = NULL;        // textual BPF filter
@@ -52,6 +53,8 @@ void bypass_sigint(int sig_no) {
 
 // callback given to pcap_loop() fro processing captural datagrams
 void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *packet) {
+    static SimpleSet arpRequests = NULL;
+    newSimpleSet(&arpRequests);
     if(!quiet_mode) printf("Grabbed %d bytes (%d%%) of datagram received on %s", 
         h->caplen, 
         (int)(100.0 * h->caplen / h->len), 
@@ -84,7 +87,20 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
             if (security_tool == ARPSPOOF) {
                 switch(a->operation(a)) {
                     case akt_ArpRequest:
-                        printf("debug ip : %s\n", get_ipaddress(a->destination_ip(a)));
+                        // Add target's IP to the set to log there was a request to its MAC
+                        printf("arp request destination ip : %s\n", get_ipaddress(a->destination_ip(a)));
+                        arpRequests->add(get_ipaddress(a->destination_ip(a)), arpRequests);
+                        break;
+                    case akt_ArpReply:
+                        // Make sure the source respond to a legitimate request
+                        if (arpRequests->find(get_ipaddress(a->source_ip(a)), arpRequests) == -1) {
+                            // this reply is gratuitous(no corresponding request)
+                            printf("\n **** ALERT - Poetential ARP spoofing detected **** \n");
+                            printf("Unsollicited ARP reply to %s ,", get_macaddress(a->destination_mac(a)));
+                            printf("originating from %s.", get_macaddress(a->source_mac(a)));
+                        } else {
+                            arpRequests->removeElement(get_ipaddress(a->source_ip(a)), arpRequests);
+                        }
                         break;
                 }
             }

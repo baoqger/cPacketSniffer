@@ -19,7 +19,19 @@ void print_macaddress(macaddress *m) {
     printf("\n");
 }
 
-
+char* get_macaddress(macaddress *m) {
+    char *mac = malloc(sizeof(char)*20);
+    mac[0] = 0; // malloc doesn't initialize the memory. mac[0] = '\0' also works
+    for (unsigned int n = 0; n < m->p_len; n++) {
+        char s[3];
+        sprintf(s, "%.2x", m->p_data[n]);
+        strcat(mac, s);
+        if (n < m->p_len - 1) {
+            strcat(mac, ".");
+        }
+    }
+    return mac;
+}
 
 
 macaddress* new_macaddress(bool owned, unsigned char *p_data) {
