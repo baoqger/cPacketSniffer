@@ -48,6 +48,26 @@ unsigned int sequence_number(icmppacket *i) {
     }
 }
 
+// Returns content of next-hop MTU header field for type 3 ICMP packets
+unsigned int next_hop_MTU(icmppacket *i) {
+    if (i->type(i) == 3) {
+        return char2word(i->p_data + 6);
+    } else {
+        fprintf(stderr, "ICMP packet does not hold next-hop MTU field.\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+// Return content of originate timestamp header field for type 13 or 14 ICMP packets
+unsigned int originate_timestamp(icmppacket *i) {
+    if(i->code(i) == 0 && (i->type(i) == 13 || i->type(i) == 14)) {
+        return char4word(i->p_data + 8);
+    } else {
+        fprintf(stderr, "ICMP packet does not hold originate timestamp field.\n");
+        exit(EXIT_FAILURE);
+    }
+}   
+
 icmppacket* new_icmppacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     icmppacket *i = malloc(sizeof(icmppacket));
     i->p_len = p_len;
@@ -57,6 +77,7 @@ icmppacket* new_icmppacket(bool owned, unsigned char *p_data, unsigned int p_len
     i->checksum = checksum;
     i->identifier = identifier;
     i->sequence_number = sequence_number;
+    i->next_hop_MTU = next_hop_MTU;
     if(i->owned) { // copy data into a new block
         memcpy(i->p_data, p_data, p_len);
     } else {
