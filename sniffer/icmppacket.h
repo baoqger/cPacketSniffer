@@ -21,7 +21,7 @@ struct icmppacket_ {
     unsigned int (*originate_timestamp)(icmppacket*);
     unsigned int (*receive_timestamp)(icmppacket*);
     unsigned int (*transmit_timestamp)(icmppacket*);
-    ipaddress* (*ip_address_address)(icmppacket*);
+    ipaddress* (*ip_address)(icmppacket*);
     ipaddress* (*address_mask)(icmppacket*);
     void (*print_icmppacket)(icmppacket*);
 }; 
