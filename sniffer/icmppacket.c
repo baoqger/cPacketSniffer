@@ -4,7 +4,6 @@
 #include <setjmp.h>
 #include "utils.h"
 #include "icmppacket.h"
-#include "ipaddress.h"
 
 jmp_buf env;
 
