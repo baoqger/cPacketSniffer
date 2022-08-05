@@ -274,6 +274,8 @@ ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     ippacket *i = malloc(sizeof(ippacket));
     i->p_len = p_len;
     i->owned = owned;
+    i->length = length;
+    i->data = data;
     i->print_ippacket = print_ippacket;
     i->version = version;
     i->ihl = ihl;
@@ -291,6 +293,7 @@ ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     i->source_ip = source_ip;
     i->count_options = count_options;
     i->option_header = option_header;
+    i->create_icmppacket = create_icmppacket;
     if (i->owned) { // copy data into a new block
         memcpy(i->p_data, p_data, p_len); 
     } else {
