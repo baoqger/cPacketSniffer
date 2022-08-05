@@ -80,7 +80,7 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
             // If it's an ICMP packet, display its attributes
             if (i->protocol(i) == ipp_icmp) {
                 icmppacket *icmp = i->create_icmppacket(i);
-                if(!quiet_mode) printf("----- ICMP packet header -----");
+                if(!quiet_mode) printf("----- ICMP packet header -----\n");
                 if(!quiet_mode) icmp->print_icmppacket(icmp);
             }
             break;

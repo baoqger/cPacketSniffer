@@ -22,6 +22,18 @@ static unsigned int header_length(icmppacket *i) {
     }
 }
 
+// Returns content of type header field
+unsigned int type(icmppacket *i) {
+    return i->p_data[0];
+}
+
+// Returns content of code header field
+unsigned int code(icmppacket *i) {
+    return i->p_data[1];
+}
+
+
+
 // Returns a textual description of the packet according to its type and code fields
 char* description(icmppacket *i) {
     unsigned int msg_id = (i->type(i) << 8) + i->code(i);
@@ -69,16 +81,6 @@ char* description(icmppacket *i) {
         case 0x1F00 : return "datagram conversion error";
         default     : return "unknown ICMP packet";
   }    
-}
-
-// Returns content of type header field
-unsigned int type(icmppacket *i) {
-    return i->p_data[0];
-}
-
-// Returns content of code header field
-unsigned int code(icmppacket *i) {
-    return i->p_data[1];
 }
 
 // Returns content of checksum header field
@@ -218,6 +220,7 @@ icmppacket* new_icmppacket(bool owned, unsigned char *p_data, unsigned int p_len
     i->owned = owned;
     i->header_length = header_length;
     i->type = type;
+    i->code = code;
     i->checksum = checksum;
     i->identifier = identifier;
     i->sequence_number = sequence_number;
