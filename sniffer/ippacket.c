@@ -4,6 +4,20 @@
 #include "ippacket.h"
 #include "utils.h"
 
+// IP packet length in byte
+static unsigned int length(ippacket *i) {
+    return i->p_len;
+}
+
+// Return a pointer to the beginning of transported data (passed the header)
+static unsigned char* data(ippacket *i) {
+    if(i->ip_header_length(i) < i->length(i)) {
+        return i->p_data + i->ip_header_length(i);
+    } else {
+        return NULL;
+    }
+} 
+
 // Version: The first header field is the four-bit version field. 
 // For IPv4, this has a value of 4.
 unsigned int version(ippacket *i) {
@@ -34,7 +48,7 @@ unsigned int tos(ippacket *i) {
 
 // Total Length: This 16-bit field defines the entire packet (fragment) size, 
 // including header and data, in bytes.
-unsigned int totol_length(ippacket *i) {
+unsigned int total_length(ippacket *i) {
     return char2word(i->p_data + 2);
 }
 
@@ -248,6 +262,14 @@ void print_ippacket(ippacket *i) {
     }
 }
 
+icmppacket* create_icmppacket(ippacket *i) {
+    if(i->protocol(i) != ipp_icmp) {
+            fprintf(stderr, "IP packet not transporting ICMP traffic\n");
+            exit(EXIT_FAILURE);
+    }
+    return new_icmppacket(false, i->data(i), i->length(i) - i->ip_header_length(i));
+}
+
 ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     ippacket *i = malloc(sizeof(ippacket));
     i->p_len = p_len;
@@ -257,7 +279,7 @@ ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     i->ihl = ihl;
     i->ip_header_length = ip_header_length;
     i->tos = tos;
-    i->total_length = totol_length;
+    i->total_length = total_length;
     i->fragment_id = fragment_id;
     i->fragment_flags = fragment_flags;
     i->fragment_pos = fragment_pos;

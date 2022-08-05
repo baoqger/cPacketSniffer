@@ -14,7 +14,7 @@ jmp_buf env;
 #define THROW longjmp(env, 1)
 
 // Returns the ICMP header length bytes
-unsigned int header_length(icmppacket *i) {
+static unsigned int header_length(icmppacket *i) {
     if(!i->p_data) {
         return 0;
     } else {
@@ -82,7 +82,7 @@ unsigned int code(icmppacket *i) {
 }
 
 // Returns content of checksum header field
-unsigned int checksum(icmppacket *i) {
+static unsigned int checksum(icmppacket *i) {
     return char2word(i->p_data + 2);
 }
 

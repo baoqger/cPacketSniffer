@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "ipaddress.h"
+#include "icmppacket.h"
 
 typedef struct ippacket_ ippacket;
 
@@ -15,6 +16,8 @@ struct ippacket_ {
     unsigned char *p_data;
     unsigned int p_len;
     void (*print_ippacket)(ippacket *self);
+    unsigned int(*length)(ippacket *self);
+    unsigned char*(*data)(ippacket *self);
     unsigned int(*version)(ippacket *self);
     unsigned int(*ip_header_length)(ippacket *self);
     unsigned int(*ihl)(ippacket *self);
@@ -31,6 +34,7 @@ struct ippacket_ {
     ipaddress* (*source_ip)(ippacket *self);
     unsigned int(*count_options)(ippacket *self);
     bool (*option_header)(ippacket *self, unsigned int idx, unsigned int *optclass, unsigned int *optnumber, unsigned int *optlen);
+    icmppacket* (*create_icmppacket)(ippacket *self);
 };
 
 ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len);

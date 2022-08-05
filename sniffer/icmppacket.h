@@ -26,6 +26,6 @@ struct icmppacket_ {
     void (*print_icmppacket)(icmppacket*);
 }; 
 
-icmppacket* new_imcppacke(bool owned, unsigned char *p_data, unsigned int p_len);
+icmppacket* new_icmppacket(bool owned, unsigned char *p_data, unsigned int p_len);
 
 #endif 

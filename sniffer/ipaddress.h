@@ -2,7 +2,7 @@
 #define _IPADDRESS_H
 
 #include <stdbool.h>
-// #include "icmppacket.h"
+
 
 #define IPADR_LEN 4;
 
@@ -13,7 +13,6 @@ struct ipaddress_ {
     unsigned char *p_data;
     unsigned int p_int;
     void (*print_ipaddress)(ipaddress *i);
-    // icmppacket* (*create_icmppacket)(ipaddress *i);
     };
 
 ipaddress* new_ipaddress(bool owned, unsigned char *p_data);
