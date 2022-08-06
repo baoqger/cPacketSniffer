@@ -22,7 +22,7 @@ pcap_dumper_t *logfile = NULL; // file descriptor for datagram logging
 bool show_raw = false;         // deactivate raw display of data captured
 bool quiet_mode = false;       // control whether the callback display captured datagrams or not
 int security_tool = 0;         // security tool to apply
-
+unsigned int capture_count = 0;// count of captured datagrams 
 
 
 // Function releasing all resources before ending program execution
@@ -39,6 +39,7 @@ static void shutdown_sniffer(int error_code) {
     if (pcap_session != NULL) {
         pcap_close(pcap_session);
     }
+    printf("*** %d datagrams captured.\n", capture_count);
     exit(error_code);
 }
 
@@ -119,7 +120,8 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
     if (user != NULL) {
         pcap_dump(user, h, packet);
     }
-
+    // Count the capture
+    capture_count++;
 }
 
 static char* fetch_device(char *errbuf) {
