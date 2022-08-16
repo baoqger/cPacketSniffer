@@ -14,6 +14,7 @@
 #include "sniffer.h"
 #include "ipaddress.h"
 #include "simple-set.h"
+#include "pingflooddetector.h"
 
 pcap_t *pcap_session = NULL;   // libpcap session handle
 char *strfilter = NULL;        // textual BPF filter
@@ -56,6 +57,9 @@ void bypass_sigint(int sig_no) {
 void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *packet) {
     static SimpleSet arpRequests = NULL;
     newSimpleSet(&arpRequests);
+    static pingflooddetector pingFloods = NULL;
+    newPingFloodDetector(&pingFloods);
+
     if(!quiet_mode) printf("Grabbed %d bytes (%d%%) of datagram received on %s", 
         h->caplen, 
         (int)(100.0 * h->caplen / h->len), 
@@ -83,6 +87,11 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                 icmppacket *icmp = i->create_icmppacket(i);
                 if(!quiet_mode) printf("----- ICMP packet header -----\n");
                 if(!quiet_mode) icmp->print_icmppacket(icmp);
+                
+                // Apply ping flood detection if required
+                if (security_tool == PINGFLOOD && pingFloods->process_ping(i->destination_ip(i), icmp, pingFloods)) {
+                    printf("\n **** ALERT - Poetential ping flood detected **** \n");
+                }
             }
             break;
         }
@@ -197,10 +206,13 @@ int main(int argc, char *argv[]) {
             case 's': // apply specified security tool
                 if(!strcmp(optarg, "arpspoof")) { // strcmp return 0 when two string are equal
                     security_tool = ARPSPOOF;
+                } else if (!strcmp(optarg, "pingflood")) {
+                    security_tool = PINGFLOOD;
                 } else {
                     fprintf(stderr, "error = unknown security tool specified (%s)\n", optarg);
                     return -10;
                 }
+                break;
                 
 
         }

@@ -6,16 +6,16 @@
 #include "ipaddress.h"
 #include "icmppacket.h"
 
-typedef struct pingflooddetector_  pingflooddetector;
-typedef struct pingrequestdata_ pingrequestdata;
+typedef struct pingflooddetector_  *pingflooddetector;
+typedef struct pingrequestdata_ *pingrequestdata;
 
 struct pingflooddetector_ {
     HashTable pingFloods;
-    bool (*process_ping)(ipaddress*, icmppacket*, pingflooddetector*);
+    bool (*process_ping)(ipaddress*, icmppacket*, pingflooddetector);
     
 };
-
-pingflooddetector* new_pingflooddetector();
-pingrequestdata*   new_pingrequestdata();
+void newPingFloodDetector(pingflooddetector*);
+pingflooddetector new_pingflooddetector();
+pingrequestdata   new_pingrequestdata();
 
 #endif 

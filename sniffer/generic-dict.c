@@ -19,7 +19,7 @@ struct data
 
 struct HashEntry
 {
-  ET Element;
+  ElementType Element;
   enum KindOfEntry Info;
 };
 

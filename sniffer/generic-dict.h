@@ -14,7 +14,7 @@ typedef unsigned int Index;
 typedef Index Position;
 
 struct data;
-typedef struct data ET;
+typedef struct data ElementType;
 struct HashEntry;
 typedef struct HashEntry Cell;
 struct HashTbl;
