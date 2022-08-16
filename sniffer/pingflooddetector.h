@@ -3,14 +3,19 @@
 
 #include <stdbool.h>
 #include "generic-dict.h"
+#include "ipaddress.h"
+#include "icmppacket.h"
 
 typedef struct pingflooddetector_  pingflooddetector;
+typedef struct pingrequestdata_ pingrequestdata;
 
 struct pingflooddetector_ {
     HashTable pingFloods;
-    bool (*process_ping)(pingflooddetector* self);
+    bool (*process_ping)(ipaddress*, icmppacket*, pingflooddetector*);
+    
 };
 
-pingflooddetector* new_pingflooddetector(); 
+pingflooddetector* new_pingflooddetector();
+pingrequestdata*   new_pingrequestdata();
 
 #endif 

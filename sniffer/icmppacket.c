@@ -13,6 +13,10 @@ jmp_buf env;
 #define CATCH else 
 #define THROW longjmp(env, 1)
 
+static unsigned int length(icmppacket *i) {
+    return i->p_len;
+}
+
 // Returns the ICMP header length bytes
 static unsigned int header_length(icmppacket *i) {
     if(!i->p_data) {
@@ -218,6 +222,7 @@ icmppacket* new_icmppacket(bool owned, unsigned char *p_data, unsigned int p_len
     icmppacket *i = malloc(sizeof(icmppacket));
     i->p_len = p_len;
     i->owned = owned;
+    i->length = length;
     i->header_length = header_length;
     i->type = type;
     i->code = code;

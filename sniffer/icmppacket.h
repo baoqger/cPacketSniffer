@@ -10,6 +10,7 @@ struct icmppacket_ {
     bool owned;
     unsigned char *p_data;
     unsigned int p_len;
+    unsigned int (*length)(icmppacket*);
     unsigned int (*header_length)(icmppacket*);
     char* (*description)(icmppacket*);
     unsigned int (*type)(icmppacket*);
