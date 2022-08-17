@@ -16,6 +16,6 @@ struct pingflooddetector_ {
 };
 void newPingFloodDetector(pingflooddetector*);
 pingflooddetector new_pingflooddetector();
-pingrequestdata   new_pingrequestdata();
+pingrequestdata   new_pingrequestdata(unsigned int, unsigned long, unsigned long);
 
 #endif 
