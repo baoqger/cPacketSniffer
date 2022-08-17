@@ -90,7 +90,9 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                 
                 // Apply ping flood detection if required
                 if (security_tool == PINGFLOOD && pingFloods->process_ping(i->destination_ip(i), icmp, pingFloods)) {
-                    printf("\n **** ALERT - Poetential ping flood detected **** \n");
+                    printf("\n **** ALERT - Poetential ping flood detected **** \n"); 
+                    printf("      numerous echo requests with large payload targeting \n");
+                    printf("      host %s\n", get_ipaddress(i->destination_ip(i)));
                 }
             }
             break;
