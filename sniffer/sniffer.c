@@ -47,10 +47,10 @@ static void shutdown_sniffer(int error_code) {
 // ctrl+c interrupt hanlder
 void bypass_sigint(int sig_no) {
     printf("**\nCapture process interrupted by user...\n");
-    if (pcap_session != NULL) {
-        pcap_close(pcap_session);
-    }
-    exit(0); // we're done
+    // if (pcap_session != NULL) {
+       // pcap_close(pcap_session);
+    //}
+    shutdown_sniffer(0); // we're done
 }
 
 // callback given to pcap_loop() fro processing captural datagrams
@@ -267,13 +267,6 @@ int main(int argc, char *argv[]) {
         printf("network mask = %s\n", mask);
     }
 
-    // Display any security application enabled
-    switch(security_tool) {
-        case ARPSPOOF: 
-            printf("ARP spoofing detection enabled...\n");
-            break;
-    }
-
     // Open a libpcap capture session
     if (rlogfname == NULL) {
         // session linked to the device
@@ -305,19 +298,29 @@ int main(int argc, char *argv[]) {
 
         printf("BPF filter = %s\n", strfilter);
     }
-
+    
+    // captured datagrams logged 
     if(wlogfname != NULL) {
         if((logfile = pcap_dump_open(pcap_session, wlogfname)) == NULL) {
             fprintf(stderr, "error - pcap_dumpj_open() failed (%s)\n", pcap_geterr(pcap_session));
             shutdown_sniffer(-9);
         }
     }
+    
+    // Display any security application enabled
+    switch(security_tool) {
+        case ARPSPOOF: 
+            printf("ARP spoofing detection enabled...\n");
+            break;
+        case PINGFLOOD:
+            printf("Ping flood detection enabled...\n");
+            break;
+    }
+
 
     // Start capturing
     pcap_loop(pcap_session, cnt, process_packet, (u_char *)logfile);
 
-    // close the session
-    pcap_close(pcap_session);
         
     shutdown_sniffer(0);
 }
