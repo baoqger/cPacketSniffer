@@ -2,14 +2,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include "tcpsession.h" 
-#include "ippacket.h"
+#include "tcpsegment.h"
 
 struct tcpsession_ {
     char sourceId[25];      // key identifying source host: source ip address + source port
     char destinationId[25]; // key identifying destination host: destination ip address + destination port
     unsigned int state;  // current session state
     unsigned int bytes;  // count of data bytes exchanged in session
-    unsigned int (*trackState)(ippacket*, bool, tcpsession);  // TCP session manager
+    unsigned int (*trackState)(tcpsegment*, char*, char*, bool, tcpsession);  // TCP session manager
     unsigned int (*getState)(tcpsession);  // access to state attribute
     unsigned int (*getBytes)(tcpsession);  // access to bytes attribute
     bool (*terminated)(tcpsession);        // tells if session terminated
@@ -33,8 +33,20 @@ bool terminated(tcpsession t) {
 }
 
 // Machine state processing: transit from one state to next according to given IP packet (which must have a TCP segment as payload)
-unsigned int trackState(ippacket *i, bool debug, tcpsession t) {
-   return 0;
+unsigned int trackState(tcpsegment *tcp, char* source_id, char* destination_id, bool debug, tcpsession t) {
+    // Make sure the datagram is part of the session
+    bool considerDatagram = ((strcmp(t->sourceId, source_id) == 0) && (strcmp(t->destinationId, destination_id) == 0)) ||
+        ((strcmp(t->sourceId, destination_id) == 0) && (strcmp(t->destinationId, destination_id) == 0));
+    if (!considerDatagram) return false;
+    
+    // Determine segment direction according to the host that initiated the connection
+    bool forward = (strcmp(t->sourceId, source_id) == 0);
+    bool backward = !forward;
+
+
+    // Apply state machine according to segment
+
+    return 0;
 }
 
 tcpsession new_tcpsession(char *source_id, char *destination_id) {
