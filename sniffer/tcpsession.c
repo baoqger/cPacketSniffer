@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "tcpsession.h" 
 #include "tcpsegment.h"
 
@@ -43,9 +44,22 @@ unsigned int trackState(tcpsegment *tcp, char* source_id, char* destination_id, 
     bool forward = (strcmp(t->sourceId, source_id) == 0);
     bool backward = !forward;
 
-
+ 
     // Apply state machine according to segment
+    switch(t->getState(t)) {
+        case 0:  // session closed
+            // The segment must be SYN from source
+            if (tcp->flag_syn(tcp) && !tcp->flag_ack(tcp) && forward) {
+                t->bytes = 0;  // reset data bytes count 
+                t->state = 1;  // waiting for syn+ack destination
 
+                if (debug) {   // display debug info on transition
+                    printf("%s >>>>> SYN >>>>> %s (open request)\n", t->sourceId, t->destinationId);
+                }
+            }
+            break;
+            
+    }
     return 0;
 }
 
