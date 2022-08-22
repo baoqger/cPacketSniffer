@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "ipaddress.h"
 #include "icmppacket.h"
+#include "tcpsegment.h"
 
 typedef struct ippacket_ ippacket;
 
@@ -35,6 +36,7 @@ struct ippacket_ {
     unsigned int(*count_options)(ippacket *self);
     bool (*option_header)(ippacket *self, unsigned int idx, unsigned int *optclass, unsigned int *optnumber, unsigned int *optlen);
     icmppacket* (*create_icmppacket)(ippacket *self);
+    tcpsegment* (*create_tcpsegment)(ippacket *self);
 };
 
 ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len);

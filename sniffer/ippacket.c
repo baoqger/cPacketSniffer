@@ -270,6 +270,14 @@ icmppacket* create_icmppacket(ippacket *i) {
     return new_icmppacket(false, i->data(i), i->length(i) - i->ip_header_length(i));
 }
 
+tcpsegment* create_tcpsegment(ippacket *i) {
+    if(i->protocol(i) != ipp_tcp) {
+        fprintf(stderr, "IP packet not transporting TCP traffic\n");
+        exit(EXIT_FAILURE);
+    }
+    return new_tcpsegment(false, i->data(i), i->length(i) - i->ip_header_length(i));
+}
+
 ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     ippacket *i = malloc(sizeof(ippacket));
     i->p_len = p_len;
@@ -294,6 +302,7 @@ ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     i->count_options = count_options;
     i->option_header = option_header;
     i->create_icmppacket = create_icmppacket;
+    i->create_tcpsegment = create_tcpsegment;
     if (i->owned) { // copy data into a new block
         memcpy(i->p_data, p_data, p_len); 
     } else {

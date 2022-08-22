@@ -15,6 +15,7 @@
 #include "ipaddress.h"
 #include "simple-set.h"
 #include "pingflooddetector.h"
+#include "tcpsegment.h"
 
 pcap_t *pcap_session = NULL;   // libpcap session handle
 char *strfilter = NULL;        // textual BPF filter
@@ -94,6 +95,12 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                     printf("      numerous echo requests with large payload targeting \n");
                     printf("      host %s\n", get_ipaddress(i->destination_ip(i)));
                 }
+            }
+            // if  it transports a TCP segment, display its attribute
+            else if (i->protocol(i) == ipp_tcp) {
+                tcpsegment *tcp = i->create_tcpsegment(i);
+                if(!quiet_mode) printf("----- TCP segment header -----\n");
+                if(!quiet_mode) tcp->print_tcpsegment(tcp);
             }
             break;
         }
