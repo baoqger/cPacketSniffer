@@ -262,6 +262,7 @@ void print_ippacket(ippacket *i) {
     }
 }
 
+
 icmppacket* create_icmppacket(ippacket *i) {
     if(i->protocol(i) != ipp_icmp) {
             fprintf(stderr, "IP packet not transporting ICMP traffic\n");
