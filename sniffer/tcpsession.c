@@ -67,6 +67,15 @@ unsigned int trackState(tcpsegment *tcp, char* source_id, char* destination_id, 
                 }
             }
             break;
+        case 2:  // destination sent SYN+ACK accepting connection
+            // The segment must be ACK from source
+            if (!tcp->flag_syn(tcp) && tcp->flag_ack(tcp) && forward) {
+                t->state = 3;  // waiting for FIN from source or destination
+                if (debug) {
+                    printf("%s >>>>> ACK >>>>> %s (opened)\n", t->sourceId, t->destinationId);
+                }
+            }
+            break;
 
             
     }
