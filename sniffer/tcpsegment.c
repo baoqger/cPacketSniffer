@@ -25,6 +25,11 @@ unsigned int ack_nb(tcpsegment *t) {
 }
 
 
+// TCP segment length in byte
+static unsigned int length(tcpsegment *t) {
+    return t->p_len;
+}
+
 // Returns the TCP segment header length in bytes
 // one word is 32 bits length, thus 4 bytes length
 static unsigned int header_length(tcpsegment *t) {
@@ -169,6 +174,7 @@ tcpsegment* new_tcpsegment(bool owned, unsigned char *p_data, unsigned int p_len
     t->p_len = p_len;
     t->owned = owned;
     t->offset = offset;
+    t->length = length;
     t->header_length = header_length;
     t->source_port = source_port;
     t->destination_port = destination_port;

@@ -9,6 +9,7 @@ struct tcpsegment_ {
     bool owned;
     unsigned char *p_data;
     unsigned int p_len;
+    unsigned int (*length)(tcpsegment *self);
     unsigned int (*header_length)(tcpsegment *self);
     unsigned int (*source_port)(tcpsegment *self);
     unsigned int (*destination_port)(tcpsegment *self);

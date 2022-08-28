@@ -160,7 +160,9 @@ unsigned int trackState(tcpsegment *tcp, char* source_id, char* destination_id, 
 
     }
     // if connection established, update data bytes counter
-
+    if (t->getState(t) == 3) {
+        t->bytes += tcp->length(tcp) - tcp->header_length(tcp);
+    }
     return 0;
 }
 
