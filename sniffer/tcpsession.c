@@ -5,17 +5,6 @@
 #include "tcpsession.h" 
 #include "tcpsegment.h"
 
-struct tcpsession_ {
-    char sourceId[25];      // key identifying source host: source ip address + source port
-    char destinationId[25]; // key identifying destination host: destination ip address + destination port
-    unsigned int state;  // current session state
-    unsigned int bytes;  // count of data bytes exchanged in session
-    unsigned int (*trackState)(tcpsegment*, char*, char*, bool, tcpsession);  // TCP session manager
-    unsigned int (*getState)(tcpsession);  // access to state attribute
-    unsigned int (*getBytes)(tcpsession);  // access to bytes attribute
-    bool (*terminated)(tcpsession);        // tells if session terminated
-};
-
 
 // Returns value of attribute state
 unsigned int getState(tcpsession t) {
@@ -160,10 +149,10 @@ unsigned int trackState(tcpsegment *tcp, char* source_id, char* destination_id, 
 
     }
     // if connection established, update data bytes counter
-    if (t->getState(t) == 3) {
+    if (t->state == 3) {
         t->bytes += tcp->length(tcp) - tcp->header_length(tcp);
     }
-    return 0;
+    return t->state;
 }
 
 tcpsession new_tcpsession(char *source_id, char *destination_id) {
