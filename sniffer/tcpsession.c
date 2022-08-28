@@ -76,9 +76,91 @@ unsigned int trackState(tcpsegment *tcp, char* source_id, char* destination_id, 
                 }
             }
             break;
+        case 3: // connetion established
+            // The segment must be FIN in either direction
+            if(tcp->flag_fin(tcp)) {
+                if(forward) { // source initiates termination
+                    t->state = 4; // waiting an ACK or FIN+ACK from destination
+                    if (debug) {
+                        printf("%s >>>>> FIN >>>>> %s (close request)\n", t->sourceId, t->destinationId);
+                    }
+                } else { // destination initiate termination
+                    t->state = 7; // waiting an ACK or FIN+ACK from source
+                    if (debug) {
+                        printf("%s <<<<< FIN <<<<< %s (close request)\n", t->sourceId, t->destinationId);
+                    }
+                }
+            }
+            break;
+        case 4: // destination having received FIN from source
+            // The segment should be ACK or FIN+ACK from destination
+            if (!tcp->flag_fin(tcp) && tcp->flag_ack(tcp) && backward) {
+                t->state = 5; // waiting for FIN from destination
+                if (debug) {  // display debug info transition
+                    printf("%s <<<<< ACK <<<<< %s (half closed)\n", t->sourceId, t->destinationId);
+                }
+            } else if(tcp->flag_fin(tcp) && tcp->flag_ack(tcp) && backward) {
+                t->state = 6; // waiting for ACK from source
+                if(debug) {
+                    printf("%s <<<<< FIN+ACK <<<<< %s (half closed)\n", t->sourceId, t->destinationId);
+                }
+            }
+            break;
+        case 5: // source having received ACK in response to its FIN
+            // The segment must be FIN from destination
+            if(tcp->flag_fin(tcp) && backward) {
+                t->state = 6; // waiting for ACK from source to complete termination
+                if (debug) {
+                    printf("%s <<<<< FIN <<<<< %s (reverse close request)\n", t->sourceId, t->destinationId);
+                }
+            }
+            break;
+        case 6: // soruce having received FIN or FIN+ACK from destination
+            // The segment must be ACK from soruce
+            if (!tcp->flag_fin(tcp) && tcp->flag_ack(tcp) && forward) {
+                t->state = 10; // session closed
+                if (debug) {
+                    printf("%s >>>>> ACK >>>>> %s (closed)\n", t->sourceId, t->destinationId);
+                }
+            }
+            break;
+        case 7: // source having received FIN from destination
+            // The segment should be ACK or FIN+ACK from source
+            if (!tcp->flag_fin(tcp) && tcp->flag_ack(tcp) && forward) {
+                t->state = 8; // waiting for FIN from source
+                if (debug) {
+                    printf("%s >>>>> ACK >>>>> %s (half closed)\n", t->sourceId, t->destinationId);
+                }
+            } else if(tcp->flag_fin(tcp) && tcp->flag_ack(tcp) && forward) {
+                t->state = 9; // waiting for ACK from destination
+                if (debug) {
+                    printf("%s >>>>> FIN+ACK >>>>> %s (half closed)\n", t->sourceId, t->destinationId);
+                }
+            }
+            break;
 
-            
+        case 8: // destination having received ACK in response to its FIN
+            // The segment must be FIN from source
+            if (tcp->flag_fin(tcp) && forward) {
+                t->state = 9; // waiting for ACK from destination to complete termination
+                if (debug) {
+                    printf("%s >>>>> FIN >>>>> %s (reverse close request)\n", t->sourceId, t->destinationId);
+                }
+            }
+            break;
+        case 9: // destination having received FIN or FIN+ACK from source
+            // The segment must be ACK from destination
+            if (!tcp->flag_fin(tcp) && tcp->flag_ack(tcp) && backward) {
+                t->state = 10; // session closed
+                if(debug) {
+                    printf("%s <<<<< ACK <<<<< %s (closed)\n", t->sourceId, t->destinationId);
+                } 
+            }
+            break;
+
     }
+    // if connection established, update data bytes counter
+
     return 0;
 }
 
