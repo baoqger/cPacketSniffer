@@ -13,7 +13,7 @@ enum KindOfEntry {Legitimate, Empty, Deleted};
 
 struct data
 {
-    char Key[20];
+    char Key[50];
     void* Value;
 };
 

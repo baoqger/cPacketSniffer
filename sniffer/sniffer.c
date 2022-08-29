@@ -15,7 +15,7 @@
 #include "ipaddress.h"
 #include "simple-set.h"
 #include "pingflooddetector.h"
-#include "tcpsegment.h"
+#include "tcpsessiontracker.h"
 
 pcap_t *pcap_session = NULL;   // libpcap session handle
 char *strfilter = NULL;        // textual BPF filter
@@ -60,6 +60,8 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
     newSimpleSet(&arpRequests);
     static pingflooddetector pingFloods = NULL;
     newPingFloodDetector(&pingFloods);
+    static tcpsessiontracker tcpSessions = NULL;
+    newTCPSessionTracker(&tcpSessions);
 
     if(!quiet_mode) printf("Grabbed %d bytes (%d%%) of datagram received on %s", 
         h->caplen, 
@@ -101,6 +103,11 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                 tcpsegment *tcp = i->create_tcpsegment(i);
                 if(!quiet_mode) printf("----- TCP segment header -----\n");
                 if(!quiet_mode) tcp->print_tcpsegment(tcp);
+
+                // Apply TCP session tracking if required
+                if(security_tool == TCPTRACK) {
+                    tcpSessions->process_tcpsegment(i, tcpSessions);     
+                }
             }
             break;
         }
@@ -217,6 +224,8 @@ int main(int argc, char *argv[]) {
                     security_tool = ARPSPOOF;
                 } else if (!strcmp(optarg, "pingflood")) {
                     security_tool = PINGFLOOD;
+                } else if (!strcmp(optarg, "tcptrack")) {
+                    security_tool = TCPTRACK;
                 } else {
                     fprintf(stderr, "error = unknown security tool specified (%s)\n", optarg);
                     return -10;
@@ -321,6 +330,8 @@ int main(int argc, char *argv[]) {
             break;
         case PINGFLOOD:
             printf("Ping flood detection enabled...\n");
+        case TCPTRACK:
+            printf("TCP session track enabled..\n");
             break;
     }
 
