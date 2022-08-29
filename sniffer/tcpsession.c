@@ -26,7 +26,7 @@ bool terminated(tcpsession t) {
 unsigned int trackState(tcpsegment *tcp, char* source_id, char* destination_id, bool debug, tcpsession t) {
     // Make sure the datagram is part of the session
     bool considerDatagram = ((strcmp(t->sourceId, source_id) == 0) && (strcmp(t->destinationId, destination_id) == 0)) ||
-        ((strcmp(t->sourceId, destination_id) == 0) && (strcmp(t->destinationId, destination_id) == 0));
+        ((strcmp(t->sourceId, destination_id) == 0) && (strcmp(t->destinationId, source_id) == 0));
     if (!considerDatagram) return false;
     
     // Determine segment direction according to the host that initiated the connection
