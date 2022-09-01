@@ -108,6 +108,12 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                 if(security_tool == TCPTRACK) {
                     tcpSessions->process_tcpsegment(i, tcpSessions);     
                 }
+            } 
+            // if it transports a UDP segment, display its attributes
+            else if (i->protocol(i) == ipp_udp) {
+                udpsegment *udp = i->create_udpsegment(i);
+                if(!quiet_mode) printf("----- UDP segment header -----\n");
+                if(!quiet_mode) udp->print_udpsegment(udp);
             }
             break;
         }

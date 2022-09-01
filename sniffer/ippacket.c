@@ -279,6 +279,14 @@ tcpsegment* create_tcpsegment(ippacket *i) {
     return new_tcpsegment(false, i->data(i), i->length(i) - i->ip_header_length(i));
 }
 
+udpsegment* create_udpsegment(ippacket *i) {
+    if(i->protocol(i) != ipp_udp) {
+        fprintf(stderr, "IP packet not transporting UDP traffic\n");
+        exit(EXIT_FAILURE);
+    }
+    return new_udpsegment(false, i->data(i), i->length(i) - i->ip_header_length(i));
+}
+
 ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     ippacket *i = malloc(sizeof(ippacket));
     i->p_len = p_len;
@@ -304,6 +312,7 @@ ippacket* new_ippacket(bool owned, unsigned char *p_data, unsigned int p_len) {
     i->option_header = option_header;
     i->create_icmppacket = create_icmppacket;
     i->create_tcpsegment = create_tcpsegment;
+    i->create_udpsegment = create_udpsegment;
     if (i->owned) { // copy data into a new block
         memcpy(i->p_data, p_data, p_len); 
     } else {
