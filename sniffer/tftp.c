@@ -13,7 +13,7 @@ static unsigned int header_length(tftpmessage *t) {
 
 
 // Returns TFTP message type according to the opcode field
-tftpoperation operation(tftpmessage *t) {
+static tftpoperation operation(tftpmessage *t) {
     switch(char2word(t->p_data)) {
         case 1: return tftp_rrq;
         case 2: return tftp_wrq;

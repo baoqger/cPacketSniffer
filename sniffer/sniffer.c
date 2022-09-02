@@ -16,6 +16,7 @@
 #include "simple-set.h"
 #include "pingflooddetector.h"
 #include "tcpsessiontracker.h"
+#include "tftp.h"
 
 pcap_t *pcap_session = NULL;   // libpcap session handle
 char *strfilter = NULL;        // textual BPF filter
@@ -25,7 +26,7 @@ bool show_raw = false;         // deactivate raw display of data captured
 bool quiet_mode = false;       // control whether the callback display captured datagrams or not
 int security_tool = 0;         // security tool to apply
 unsigned int capture_count = 0;// count of captured datagrams 
-
+char *tftpserver = NULL;       // supervised TFTP server
 
 // Function releasing all resources before ending program execution
 static void shutdown_sniffer(int error_code) {
@@ -114,6 +115,13 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                 udpsegment *udp = i->create_udpsegment(i);
                 if(!quiet_mode) printf("----- UDP segment header -----\n");
                 if(!quiet_mode) udp->print_udpsegment(udp);
+
+                // If it is a TFTP message, display its attributes
+                if (udp->destination_port(udp) == 69) {
+                    tftpmessage *tftp = udp->create_tftpmessage(udp);
+                    if(!quiet_mode) printf("-- tftp packet --\n");
+                    if(!quiet_mode) tftp->print_tftpmessage(tftp);
+                }
             }
             break;
         }
@@ -204,7 +212,10 @@ int main(int argc, char *argv[]) {
                 printf("-l file: log captured datagrams in given file.\n");
                 printf("-n : number of datagrams to capture.\n");
                 printf("-p : active promiscuous capture mode.\n");
+                printf("-q : active quite mode. \n");
                 printf("-r : active raw display of captured data.\n");
+                printf("-s: apply specified security application. Available applications: arpspoof, pingflood, tcptrack, tftptrack.\n");
+                printf("-S #.#.#.# : IP address of TFTP server to monitor.\n");
                 if (argc == 2) return 0;
                 break;
             case 'i': // filename from which to read logged datagram
@@ -232,7 +243,10 @@ int main(int argc, char *argv[]) {
                     security_tool = PINGFLOOD;
                 } else if (!strcmp(optarg, "tcptrack")) {
                     security_tool = TCPTRACK;
-                } else {
+                } else if (!strcmp(optarg, "tftptrack")) {
+                    security_tool = TFTPTRACK;
+                }
+                else {
                     fprintf(stderr, "error = unknown security tool specified (%s)\n", optarg);
                     return -10;
                 }
@@ -246,7 +260,16 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "error - options -d and -i are mutually exclusives\n");
         return -7;
     }
-
+    // Option S is exclusively usable for TFTP server monitoring
+    if (tftpserver != NULL && security_tool != TFTPTRACK) {
+       fprintf(stderr, "error - option S may be used only for TFTP tracking \n");
+       return -11;
+    }
+    // Make sure the IP of a TFTP server was specified for monitoring
+    if (security_tool == TFTPTRACK && tftpserver == NULL) {
+        fprintf(stderr, "error - no TFTP server specified (use option -S)\n");
+        return -11;
+    }
 
     // identify device to use
     if (device == NULL && rlogfname == NULL) {
