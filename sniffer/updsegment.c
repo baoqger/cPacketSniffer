@@ -4,6 +4,21 @@
 #include "udpsegment.h"
 #include "utils.h"
 
+// Returns a pointer to beginning of transported data(passed the header)
+static unsigned char* data(udpsegment *u) {
+    if (u->header_length(u) < u->length(u)) { // make sure the datagram has data bytes
+        return u->p_data + u->header_length(u);
+    } else {
+        return NULL;
+    }
+}
+
+
+// Return the UDP segment length in bytes
+static unsigned int length(udpsegment *u) {
+    return u->p_len;
+}
+
 // Returns the UDP segment header length in bytes
 static unsigned int header_length(udpsegment *u) {
     return 8;
@@ -74,12 +89,17 @@ void print_udpsegment(udpsegment *u) {
     }
 }
 
+tftpmessage* create_tftpmessage(udpsegment *u) {
+    return new_tftpmessage(false, u->data(u), u->length(u) - u->header_length(u));
+}
 
 // create a new udpsegment instance
 udpsegment* new_udpsegment(bool owned, unsigned char *p_data, unsigned int p_len) {
     udpsegment *u = malloc(sizeof(udpsegment));
     u->p_len = p_len;
     u->owned = owned;
+    u->data = data;
+    u->length = length;
     u->header_length = header_length;
     u->source_port = source_port;
     u->destination_port = destination_port;
@@ -87,6 +107,7 @@ udpsegment* new_udpsegment(bool owned, unsigned char *p_data, unsigned int p_len
     u->checksum = checksum;
     u->port_name = port_name;
     u->print_udpsegment = print_udpsegment;
+    u->create_tftpmessage = create_tftpmessage;
     if (u->owned) { // copy the data into a new block
         memcpy(u->p_data, p_data, p_len);
     } else {
