@@ -15,7 +15,7 @@ char* source_ip_port(ippacket *i) {
 }
 
 // get destination id(ip:port)
-char* destination_id_port(ippacket *i) {
+char* destination_ip_port(ippacket *i) {
     char *destination_id = malloc(sizeof(char) * 25);
     tcpsegment *tcp = i->create_tcpsegment(i);
     sprintf(destination_id, "%s:%d", get_ipaddress(i->destination_ip(i)), tcp->destination_port(tcp));
@@ -28,7 +28,7 @@ void process_tcpsegment(ippacket *i, tcpsessiontracker tracker) {
     tcpsegment *tcp = i->create_tcpsegment(i);
     // compute keys to uniquely identify the session
     char *src = source_ip_port(i);
-    char *dst = destination_id_port(i);
+    char *dst = destination_ip_port(i);
 
     // Is the segment part of a tracked session or not? We need to search
     // for two keys since segments within a TCP session travel in both directions
