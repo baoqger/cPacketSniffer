@@ -5,8 +5,23 @@
 #include "tftpsessiontracker.h"
 #include "ipaddress.h"
 #include "udpsegment.h"
-#include "tcpsessiontracker.h"
 #include "tftp.h"
+
+// get source id(ip:port)
+static char* source_ip_port(ippacket *i) {
+    char *source_id = malloc(sizeof(char) * 25);
+    udpsegment *udp = i->create_udpsegment(i);
+    sprintf(source_id, "%s:%d", get_ipaddress(i->source_ip(i)), udp->source_port(udp));
+    return source_id;
+}
+
+// get destination id(ip:port)
+static char* destination_ip_port(ippacket *i) {
+    char *destination_id = malloc(sizeof(char) * 25);
+    udpsegment *udp = i->create_udpsegment(i);
+    sprintf(destination_id, "%s:%d", get_ipaddress(i->destination_ip(i)), udp->destination_port(udp));
+    return destination_id;
+}
 
 // process udp segment, update the tftp session transported payload size
 void process_tftpmessage(ippacket *i,char* tftpserver, tftpsessiontracker tracker) {
