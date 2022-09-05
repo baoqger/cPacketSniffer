@@ -15,4 +15,7 @@ struct tcpsessiontracker_ {
 void newTCPSessionTracker(tcpsessiontracker*);
 tcpsessiontracker new_tcpsessiontracker();
 
+char* source_ip_port(ippacket*);
+char* destination_ip_port(ippacket*);
+
 #endif 
