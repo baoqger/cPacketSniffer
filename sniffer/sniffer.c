@@ -17,6 +17,7 @@
 #include "pingflooddetector.h"
 #include "tcpsessiontracker.h"
 #include "tftp.h"
+#include "tftpsessiontracker.h"
 
 pcap_t *pcap_session = NULL;   // libpcap session handle
 char *strfilter = NULL;        // textual BPF filter
@@ -63,6 +64,8 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
     newPingFloodDetector(&pingFloods);
     static tcpsessiontracker tcpSessions = NULL;
     newTCPSessionTracker(&tcpSessions);
+    static tftpsessiontracker tftpSessions = NULL;
+    newTFTPSessionTracker(&tftpSessions);
 
     if(!quiet_mode) printf("Grabbed %d bytes (%d%%) of datagram received on %s", 
         h->caplen, 
@@ -117,11 +120,10 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                 if(!quiet_mode) udp->print_udpsegment(udp);
 
                 // If it is a TFTP message, display its attributes
-                if (udp->destination_port(udp) == 69) {
-                    tftpmessage *tftp = udp->create_tftpmessage(udp);
-                    if(!quiet_mode) printf("-- tftp packet --\n");
-                    if(!quiet_mode) tftp->print_tftpmessage(tftp);
+                if (security_tool == TFTPTRACK && tftpserver) {
+                    tftpSessions->process_tftpmessage(i, tftpserver, tftpSessions);
                 }
+                                      
             }
             break;
         }
@@ -195,7 +197,7 @@ int main(int argc, char *argv[]) {
     sa.sa_handler  = &bypass_sigint;
     sigaction(SIGINT, &sa, &osa);
 
-    while((argch = getopt(argc, argv, "hpqrd:f:i:l:n:s:")) != EOF) {
+    while((argch = getopt(argc, argv, "hpqrd:f:i:l:n:s:S:")) != EOF) {
         switch(argch) {
             case 'd': // device name
                 device = optarg;
@@ -251,8 +253,9 @@ int main(int argc, char *argv[]) {
                     return -10;
                 }
                 break;
-                
-
+            case 'S': // TFTP server to monitor
+                tftpserver = optarg; 
+                break;
         }
     }
     // option -d and -i are mutually exclusives
