@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
                 strfilter = optarg;
                 break;
             case 'h':
-                printf("Usage: sniff [-d XXX -h]\n");
+                printf("Usage: sniffer [-d XXX -h]\n");
                 printf("-d XXX: device to capture from, where XXX is device name (ex: eth0).\n");
                 printf("-f 'filter' : filter captures according to BPF expression (ex: 'ip or arp'). \n");
                 printf("-h : show this information.\n");
