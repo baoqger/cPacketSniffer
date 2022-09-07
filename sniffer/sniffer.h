@@ -7,5 +7,6 @@
 #define TFTPTRACK 4
 
 void destroy_trackers();
+void initialize_trackers();
 
 #endif 

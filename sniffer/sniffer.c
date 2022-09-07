@@ -56,9 +56,6 @@ static void shutdown_sniffer(int error_code) {
 // ctrl+c interrupt hanlder
 void bypass_sigint(int sig_no) {
     printf("**\nCapture process interrupted by user...\n");
-    // if (pcap_session != NULL) {
-       // pcap_close(pcap_session);
-    //}
     shutdown_sniffer(0); // we're done
 }
 
@@ -80,14 +77,6 @@ void destroy_trackers() {
 
 // callback given to pcap_loop() fro processing captural datagrams
 void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *packet) {
-    // static SimpleSet arpRequests = NULL;
-    // newSimpleSet(&arpRequests);
-    // static pingflooddetector pingFloods = NULL;
-    // newPingFloodDetector(&pingFloods);
-    // static tcpsessiontracker tcpSessions = NULL;
-    // newTCPSessionTracker(&tcpSessions);
-    // static tftpsessiontracker tftpSessions = NULL;
-    // newTFTPSessionTracker(&tftpSessions);
 
     if(!quiet_mode) printf("Grabbed %d bytes (%d%%) of datagram received on %s", 
         h->caplen, 
