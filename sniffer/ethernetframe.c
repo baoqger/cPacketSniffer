@@ -144,6 +144,10 @@ void print_ethernetframe(ethernetframe *e) {
             printf("802.1Q drop eligible indicator (DEI) = %d \n", e->dei_8021q(e));
             printf("802.1Q vlan identifier (VID) = %d \n", e->vid_8021q(e));
         } 
+        
+        // Release allocated memory
+        free(d);
+        free(s);
     }
 }
 

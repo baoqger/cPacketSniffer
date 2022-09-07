@@ -259,6 +259,10 @@ void print_ippacket(ippacket *i) {
                 }
             }
         }
+        
+        // Release allocated memory
+        free(d);
+        free(s);
     }
 }
 

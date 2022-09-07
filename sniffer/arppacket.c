@@ -185,6 +185,11 @@ void print_arppacket(arppacket *a) {
             case apt_IPv6:   printf("IPv6 [%s]\n", outstr); break;
             default:         printf("unknown [%s]\n", outstr); break;
         }
+        // release allocated memory
+        free(di);
+        free(si);
+        free(d);
+        free(s);
     }
 }
 

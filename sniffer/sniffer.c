@@ -81,6 +81,8 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
     ethernetframe *e = d->create_ethernetframe(d);
     if(!quiet_mode) printf("---------- Ethernet frame header ----------\n");
     if(!quiet_mode) e->print_ethernetframe(e);
+    free(d); // release the allocated memory not used anymore
+
     // Display payload content according to EtherType
     switch(e->ether_type(e)) {
         case et_IPv4: {
@@ -101,6 +103,9 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                     printf("      numerous echo requests with large payload targeting \n");
                     printf("      host %s\n", get_ipaddress(i->destination_ip(i)));
                 }
+
+                // release allocated memory
+                free(icmp);
             }
             // if  it transports a TCP segment, display its attribute
             else if (i->protocol(i) == ipp_tcp) {
@@ -112,6 +117,9 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                 if(security_tool == TCPTRACK) {
                     tcpSessions->process_tcpsegment(i, tcpSessions);     
                 }
+                
+                // release allocated memo
+                free(tcp);
             } 
             // if it transports a UDP segment, display its attributes
             else if (i->protocol(i) == ipp_udp) {
@@ -123,8 +131,14 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                 if (security_tool == TFTPTRACK && tftpserver) {
                     tftpSessions->process_tftpmessage(i, tftpserver, tftpSessions);
                 }
+                
+                //release allocated memo
+                free(udp);
                                       
             }
+
+            // release allocated memory
+            free(i);
             break;
         }
         case et_ARP: {
@@ -153,10 +167,17 @@ void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *pac
                         break;
                 }
             }
+
+            // release allocated memory
+            free(a);
             break;
         }
-        
+            
     } 
+    
+    // release allocated memory
+    free(e);
+
     // log datagram if required
     if (user != NULL) {
         pcap_dump(user, h, packet);
@@ -367,10 +388,13 @@ int main(int argc, char *argv[]) {
             break;
     }
 
+    // release allocated memory
+    free(device);
 
     // Start capturing
     pcap_loop(pcap_session, cnt, process_packet, (u_char *)logfile);
 
         
     shutdown_sniffer(0);
+
 }
