@@ -79,3 +79,10 @@ void newTCPSessionTracker(tcpsessiontracker *tracker) {
     }
 } 
 
+// destroy tcpsessiontracker instance
+void destroy_tcpsessiontracker(tcpsessiontracker tracker)  {
+    if (tracker != NULL) {
+        DestroyTable(tracker->tcpSessions);
+        free(tracker);
+    } 
+}

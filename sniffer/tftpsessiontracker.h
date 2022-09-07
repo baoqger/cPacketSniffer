@@ -13,5 +13,6 @@ struct tftpsessiontracker_ {
 
 void newTFTPSessionTracker(tftpsessiontracker*);
 tftpsessiontracker new_tftpsessiontracker();
+void destroy_tftpsessiontracker(tftpsessiontracker);
 
 #endif 

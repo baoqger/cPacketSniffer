@@ -6,4 +6,6 @@
 #define TCPTRACK 3
 #define TFTPTRACK 4
 
+void destroy_trackers();
+
 #endif 

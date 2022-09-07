@@ -28,9 +28,15 @@ bool quiet_mode = false;       // control whether the callback display captured 
 int security_tool = 0;         // security tool to apply
 unsigned int capture_count = 0;// count of captured datagrams 
 char *tftpserver = NULL;       // supervised TFTP server
+SimpleSet arpRequests = NULL;  // arp spoofing detector
+pingflooddetector pingFloods = NULL;  // ping flood detector
+tcpsessiontracker tcpSessions = NULL; // tcp sessions tracker
+tftpsessiontracker tftpSessions = NULL; // tftp sessions tracker
 
 // Function releasing all resources before ending program execution
 static void shutdown_sniffer(int error_code) {
+    // close the trackers
+    destroy_trackers();
     // close log file
     if (logfile != NULL) {
         pcap_dump_close(logfile);
@@ -56,16 +62,32 @@ void bypass_sigint(int sig_no) {
     shutdown_sniffer(0); // we're done
 }
 
+// Initialize the trackers
+void initialize_trackers() {
+    newSimpleSet(&arpRequests);
+    newPingFloodDetector(&pingFloods);
+    newTCPSessionTracker(&tcpSessions);
+    newTFTPSessionTracker(&tftpSessions);
+}
+
+// Destroy the trackers
+void destroy_trackers() {
+    disposeSimpleSet(arpRequests);
+    destroy_tcpsessiontracker(tcpSessions);
+    destroy_pingflooddetector(pingFloods);
+    destroy_tftpsessiontracker(tftpSessions);
+}
+
 // callback given to pcap_loop() fro processing captural datagrams
 void process_packet(u_char *user, const struct pcap_pkthdr *h, const u_char *packet) {
-    static SimpleSet arpRequests = NULL;
-    newSimpleSet(&arpRequests);
-    static pingflooddetector pingFloods = NULL;
-    newPingFloodDetector(&pingFloods);
-    static tcpsessiontracker tcpSessions = NULL;
-    newTCPSessionTracker(&tcpSessions);
-    static tftpsessiontracker tftpSessions = NULL;
-    newTFTPSessionTracker(&tftpSessions);
+    // static SimpleSet arpRequests = NULL;
+    // newSimpleSet(&arpRequests);
+    // static pingflooddetector pingFloods = NULL;
+    // newPingFloodDetector(&pingFloods);
+    // static tcpsessiontracker tcpSessions = NULL;
+    // newTCPSessionTracker(&tcpSessions);
+    // static tftpsessiontracker tftpSessions = NULL;
+    // newTFTPSessionTracker(&tftpSessions);
 
     if(!quiet_mode) printf("Grabbed %d bytes (%d%%) of datagram received on %s", 
         h->caplen, 
@@ -390,6 +412,9 @@ int main(int argc, char *argv[]) {
 
     // release allocated memory
     free(device);
+
+    // initialization of trackers
+    initialize_trackers();
 
     // Start capturing
     pcap_loop(pcap_session, cnt, process_packet, (u_char *)logfile);

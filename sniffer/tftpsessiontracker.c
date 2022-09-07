@@ -85,3 +85,11 @@ void newTFTPSessionTracker(tftpsessiontracker *tracker) {
         *tracker = new_tftpsessiontracker();
     }
 }
+
+// destroy the tftpsessiontracker instance
+void destroy_tftpsessiontracker(tftpsessiontracker tracker) {
+    if (tracker != NULL) {
+        DestroyTable(tracker->tftpSessions);
+        free(tracker);
+    }
+}

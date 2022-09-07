@@ -87,4 +87,14 @@ pingflooddetector new_pingflooddetector() {
     return detector;
 } 
 
+// destroy the new pingflooddetector instance
+void destroy_pingflooddetector(pingflooddetector detector) {
+    if (detector != NULL) {
+        DestroyTable(detector->pingFloods);
+        free(detector);
+    }
+}
+
+
+
 
