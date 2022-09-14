@@ -220,7 +220,7 @@ primeList(int n)
   j = 0; //keep track of the final result list length
   for(p = 1; p < n; p++)
   {
-    while(N[p] != 0 && p < n)
+    while(p < n && N[p] != 0)
       p++;
     if (p >= n)
       break;
@@ -239,7 +239,7 @@ primeList(int n)
   {
     result[k] = l+1;
     l++;
-    while(N[l] != 0)
+    while(l <n && N[l] != 0)
       l++;
   }
   result[j] = INT_MAX;
