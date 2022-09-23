@@ -7,8 +7,9 @@
 `cPacketSniffer` is for learning and research purpose. If you want to know how to develop a Linux network packets sniffer from scratch or practice how to write a non-trivial application in C, then this project is for you!
 
 ## Features
-
+<p align="center">
 <img src="cPacketSniffer.png" title="cPacketSniffer modules" width="600px" height="400px">
+</p>
 
 - Integrate with `libpcap` to support: filtering captured packets, capturing packets offline, capturing packets on specific devices and capturing packets in promiscuous mode.
 - Analyze network packets at low layers of TCP/IP stack, including `Ethernet`, `ARP`, `ICMP`, `IP(IPv4)`, `TCP`, `UDP`, etc. Also one protocol in the application layer: `TFTP`. 
