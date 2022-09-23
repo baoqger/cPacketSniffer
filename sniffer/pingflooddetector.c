@@ -46,7 +46,7 @@ bool process_ping(ipaddress *target, icmppacket *icmp, pingflooddetector detecto
     d->count_ip         += 1;
     d->sum_delays       += time_arrival - d->time_last_arrival;
     d->time_last_arrival = time_arrival;
-    printf("IP address %s ping %d times.\n", target_ip, d->count_ip);
+    // printf("IP address %s ping %d times.\n", target_ip, d->count_ip);
     
     // compute the mean packet inter arrival time for this target
     double mean_time = 1.0 * d->sum_delays / d->count_ip;

@@ -401,7 +401,7 @@ int main(int argc, char *argv[]) {
     }
 
     // release allocated memory
-    free(device);
+    // free(device);
 
     // initialization of trackers
     initialize_trackers();
