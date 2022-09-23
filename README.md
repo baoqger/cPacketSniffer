@@ -8,6 +8,8 @@
 
 ## Features
 
+<img src="cPacketSniffer.png" title="cPacketSniffer modules" width="600px" height="400px">
+
 - Integrate with `libpcap` to support: filtering captured packets, capturing packets offline, capturing packets on specific devices and capturing packets in promiscuous mode.
 - Analyze network packets at low layers of TCP/IP stack, including `Ethernet`, `ARP`, `ICMP`, `IP(IPv4)`, `TCP`, `UDP`, etc. Also one protocol in the application layer: `TFTP`. 
 - Detect network security attacks:
@@ -41,6 +43,10 @@ Usage: sniffer [-d XXX -h]
 -s: apply specified security application. Available applications: arpspoof, pingflood, tcptrack, tftptrack.
 -S: #.#.#.# : IP address of TFTP server to monitor.
 ```
+
+## Demo
+
+In detail, please refer to this [article](https://organicprogrammer.com/2022/07/22/CPacketSniffer/).
 
 ## External dependencies
 `cPacketSniffer` is relying on `libpcap`, which is a famous library in the network capturing field. And the libraries are pretty straightforward to install.
