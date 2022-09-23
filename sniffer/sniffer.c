@@ -394,6 +394,7 @@ int main(int argc, char *argv[]) {
             break;
         case PINGFLOOD:
             printf("Ping flood detection enabled...\n");
+            break;
         case TCPTRACK:
             printf("TCP session track enabled..\n");
             break;
